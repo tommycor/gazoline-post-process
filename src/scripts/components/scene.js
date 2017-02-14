@@ -10,13 +10,14 @@ module.exports = {
 		this.onMove		= this.onMove.bind(this);
 		this.onClick	= this.onClick.bind(this);
 		this.container 	= document.querySelector('#container');
+		this.delta 		= 0;
 		
 		//get context
 		this.canvas = document.createElement("canvas");
 		this.onResize();
 		this.ctx 	= new GlslCanvas(this.canvas);
 
-		this.fragShader = require('../shaders/water.fragment.glsl');
+		this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
 		// this.vertexShader = require('../shaders/water.vertex.glsl');
 
 		this.ctx.load( this.fragShader );
@@ -49,6 +50,7 @@ module.exports = {
 	},
 
 	render: function() {
+		this.delta += .05;
 	}
 
 };
