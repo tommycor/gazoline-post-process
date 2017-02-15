@@ -14,8 +14,9 @@ module.exports = {
 		
 		//get context
 		this.canvas = document.createElement("canvas");
+		this.container.appendChild(this.canvas);
 		this.onResize();
-		this.ctx 	= new GlslCanvas(this.canvas);
+		this.ctx = new GlslCanvas(this.canvas);
 
 		this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
 		// this.vertexShader = require('../shaders/water.vertex.glsl');
@@ -24,7 +25,6 @@ module.exports = {
 		// this.ctx.load(string_frag_code);
 
 
-		this.container.appendChild(this.canvas);
 
 		//// REGIST RENDERER
 		raf.register( this.render );
@@ -50,7 +50,7 @@ module.exports = {
 	},
 
 	render: function() {
-		this.delta += .05;
+		this.delta += .005;
 	}
 
 };
