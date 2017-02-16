@@ -21,6 +21,7 @@ module.exports = {
 		this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
 		// this.vertexShader = require('../shaders/water.vertex.glsl');
 
+		this.ctx.setUniform('u_tex', './assets/medias/test.jpg');
 		this.ctx.load( this.fragShader );
 		// this.ctx.load(string_frag_code);
 
@@ -50,7 +51,7 @@ module.exports = {
 	},
 
 	render: function() {
-		this.delta += .005;
+		this.delta += .05;
 	}
 
 };
