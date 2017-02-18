@@ -11,20 +11,17 @@ module.exports = {
 		this.onClick	= this.onClick.bind(this);
 		this.container 	= document.querySelector('#container');
 		this.delta 		= 0;
+		this.isGreyscale= true;
 		
-		//get context
 		this.canvas = document.createElement("canvas");
 		this.container.appendChild(this.canvas);
 		this.onResize();
 		this.ctx = new GlslCanvas(this.canvas);
 
 		this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
-		// this.vertexShader = require('../shaders/water.vertex.glsl');
 
-		this.ctx.setUniform('u_tex', './assets/medias/test.jpg');
+		this.ctx.setUniform('u_tex', './assets/medias/test_2.jpg');
 		this.ctx.load( this.fragShader );
-		// this.ctx.load(string_frag_code);
-
 
 
 		//// REGIST RENDERER
@@ -51,7 +48,7 @@ module.exports = {
 	},
 
 	render: function() {
-		this.delta += .05;
+		this.delta += 1;
 	}
 
 };
