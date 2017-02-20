@@ -45113,8 +45113,6 @@ module.exports = {
 
 				this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
 
-				_utilsRaf2['default'].register(this.render);
-				_utilsRaf2['default'].start();
 				this.onResize();
 				this.initPostProcessing();
 

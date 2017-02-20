@@ -61,8 +61,6 @@ module.exports = {
 
 		this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
 
-		raf.register( this.render );
-		raf.start();
 		this.onResize();
 		this.initPostProcessing()
 
