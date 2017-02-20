@@ -16,7 +16,8 @@
     "pixi": "^0.3.1",
     "post-process": "0.0.1",
     "resource-loader": "^1.6.2",
-    "superagent": "^1.5.0"
+    "superagent": "^1.5.0",
+    "three-js": "^79.0.0"
   },
   "devDependencies": {
     "autoprefixer": "*",

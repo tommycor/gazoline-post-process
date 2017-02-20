@@ -1,6 +1,9 @@
 
 uniform float u_time;
 uniform vec2 u_resolution;
+uniform float u_mouse;
+uniform sampler2D u_tex;
+uniform vec2 u_texResolution;
 uniform bool u_greyscale;
 
 vec3 offset = vec3( 0., .1, .2);
