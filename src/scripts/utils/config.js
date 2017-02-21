@@ -1,5 +1,4 @@
-import threejs 				from "three-js";
-const THREE = threejs();
+import * as THREE from "three";
 
 var config = {	
 	canvas: {

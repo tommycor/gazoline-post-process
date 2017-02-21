@@ -15,8 +15,10 @@
     "normalize.css": "^3.0.3",
     "pixi": "^0.3.1",
     "post-process": "0.0.1",
+    "postprocessing": "^2.0.0",
     "resource-loader": "^1.6.2",
     "superagent": "^1.5.0",
+    "three-effectcomposer": "0.0.1",
     "three-js": "^79.0.0"
   },
   "devDependencies": {

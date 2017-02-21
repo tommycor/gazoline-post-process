@@ -1,10 +1,15 @@
-import threejs 				from "three-js";
-const THREE = threejs();
+import * as THREE 		from "three";
+// import { EffectComposer, RenderPass } from "postprocessing";
+var EffectComposer = require('three-effectcomposer')(THREE);
 
-import config 		from '../utils/config';
-import raf 			from '../utils/raf';
-import mapper 		from '../utils/mapper';
-import GlslCanvas	from 'glslCanvas'
+
+
+import config 			from '../utils/config';
+import raf 				from '../utils/raf';
+import mapper 			from '../utils/mapper';
+import GlslCanvas		from 'glslCanvas';
+
+// THREE.EffectComposer = require('three-effectcomposer')(THREE);
 
 module.exports = {
 
@@ -94,11 +99,11 @@ module.exports = {
 	},
 
 	initPostProcessing() {
-		this.composer	= new THREE.EffectComposer( this.renderer );
+		this.composer	= new EffectComposer( this.renderer );
 
 		this.postProcessUniforms = {
 			"u_time": { type: "f", value: null },
-			"u_resolution": { type: "v2", value: THREE.Vector2( this.canvas.width, this. this.canvas.height ) },
+			"u_resolution": { type: "v2", value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
 			"u_greyscale": { type: "i", value: config.greyscale },
 		},
 
@@ -108,8 +113,9 @@ module.exports = {
 			fragmentShader: require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl')
 		}
 
-		this.cameraPass 	= new THREE.RenderPass( this.scene, this.camera );
-		this.gazolinePass 	= new THREE.ShaderPass( this.gazolineShader );
+		this.cameraPass 	= new EffectComposer.RenderPass( this.scene, this.camera );
+		this.gazolinePass 	= new EffectComposer.ShaderPass( this.gazolineShader );
+		this.gazolinePass.renderToScreen = true;
 		this.composer.addPass( this.cameraPass );
 		this.composer.addPass( this.gazolinePass );
 	},
@@ -119,7 +125,6 @@ module.exports = {
 
 		// this.renderer.render(this.scene, this.camera);
 		this.composer.render();
-		
 	}
 
 };
