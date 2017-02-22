@@ -46992,33 +46992,36 @@ module.exports = {
 				//// ADD OBJECTS TO SCENE
 				this.scene.add(this.ambient);
 
+				this.gazolineUniforms = {
+						u_time: { type: "f", value: .0 },
+						u_resolution: { type: "v2", value: THREE.Vector2(this.canvas.width, this.canvas.height) },
+						u_greyscale: { type: "i", value: _utilsConfig2['default'].greyscale },
+						u_tex: { type: 't', value: THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) }
+				};
+
 				this.planeGeometry = new THREE.PlaneBufferGeometry(100, 50, 0);
-				this.planeMaterial = new THREE.MeshBasicMaterial({
+				this.planeMaterial = new THREE.ShaderMaterial({
 						color: 0xffffff,
-						side: THREE.DoubleSide
+						vertexShader: require('../shaders/water.vertex.glsl'),
+						fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl'),
+						uniforms: this.gazolineUniforms
 				});
-				// map: THREE.ImageUtils.loadTexture( '/assets/medias/test_1.jpg' )
 				this.plane = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
 				this.scene.add(this.plane);
 
 				//// ADD CANVAS TO DOM
 				this.container.appendChild(this.renderer.domElement);
 
-				this.fragShader = require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl');
-
 				this.onResize();
-				this.initPostProcessing();
 
 				//// REGIST RENDERER
 				_utilsRaf2['default'].register(this.render);
 				_utilsRaf2['default'].start();
-
-				window.addEventListener('resize', this.onResize);
-				window.addEventListener('mousemove', this.onMove);
-				window.addEventListener('click', this.onClick);
 		},
 
-		onClick: function onClick(event) {},
+		onClick: function onClick(event) {
+				console.log(this.gazolineShader);
+		},
 
 		onMove: function onMove(event) {},
 
@@ -47036,38 +47039,15 @@ module.exports = {
 				this.halfHeight = window.innerHeight * .5;
 		},
 
-		initPostProcessing: function initPostProcessing() {
-				this.composer = new EffectComposer(this.renderer);
-
-				this.postProcessUniforms = {
-						u_time: { type: "f", value: .0 },
-						u_resolution: { type: "v2", value: THREE.Vector2(this.canvas.width, this.canvas.height) },
-						u_greyscale: { type: "i", value: _utilsConfig2['default'].greyscale },
-						u_tex: { type: 't', value: THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) }
-				};
-
-				this.gazolineShader = {
-						uniforms: this.postProcessUniforms,
-						vertexShader: require('../shaders/water.vertex.glsl'),
-						fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl')
-				};
-
-				this.cameraPass = new EffectComposer.RenderPass(this.scene, this.camera);
-				this.gazolinePass = new EffectComposer.ShaderPass(this.gazolineShader);
-				this.gazolinePass.renderToScreen = true;
-				this.composer.addPass(this.cameraPass);
-				this.composer.addPass(this.gazolinePass);
-		},
-
 		render: function render() {
-				this.gazolineShader.uniforms['u_time'].value = this.clock.getElapsedTime();
+				this.planeMaterial.uniforms['u_time'].value = this.clock.getElapsedTime();
 
-				this.composer.render();
+				this.renderer.render(this.scene, this.camera);
 		}
 
 };
 
-},{"../shaders/init.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\init.glsl","../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../shaders/water.vertex.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.vertex.glsl","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/raf":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js","glslCanvas":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\glslCanvas\\build\\GlslCanvas.js","three":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three\\build\\three.js","three-effectcomposer":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three-effectcomposer\\index.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
+},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../shaders/water.vertex.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.vertex.glsl","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/raf":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js","glslCanvas":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\glslCanvas\\build\\GlslCanvas.js","three":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three\\build\\three.js","three-effectcomposer":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three-effectcomposer\\index.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -47081,17 +47061,14 @@ window.onload = function () {
 	_componentsScene2['default'].init();
 };
 
-},{"./components/scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\init.glsl":[function(require,module,exports){
-module.exports = "precision mediump float;\r\nprecision highp int;\r\n\r\n#define PI 3.1415926535\r\n#define HALF_PI 1.57079632679\r\n";
-
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl":[function(require,module,exports){
+},{"./components/scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl":[function(require,module,exports){
 module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
-module.exports = "uniform float u_time;\r\nuniform vec2 u_resolution;\r\nuniform bool u_greyscale;\r\nuniform sampler2D u_tex;\r\n\r\nvarying vec2 vUv;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 rgb = vec3(.0, .0, .0);\r\n\r\nvoid main() {\r\n\tvec3 noise = vec3(\r\n\t\tsnoise( vec3( vUv * 2. + offset.r, u_time * .5 ) ) * .5 + .5,\r\n\t\tsnoise( vec3( vUv * 2. + offset.g, u_time * .5 ) ) * .5 + .5,\r\n\t\tsnoise( vec3( vUv * 2. + offset.b, u_time * .5 ) ) * .5 + .5\r\n\t);\r\n\r\n\t// vec3 rgb = texture2D(u_tex, vUv).rgb * noise;\r\n\tvec3 rgb = vec3(1.0, 1.0, 1.0).rgb * noise;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
+module.exports = "uniform float u_time;\r\nuniform vec2 u_resolution;\r\nuniform bool u_greyscale;\r\nuniform sampler2D u_tex;\r\n\r\nvarying vec2 vUv;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 rgb = vec3(.0, .0, .0);\r\n\r\nvoid main() {\r\n\tvec3 noise = vec3(\r\n\t\tsnoise( vec3( vUv * 2. + offset.r, u_time * .5 ) ) * .25 + .5,\r\n\t\tsnoise( vec3( vUv * 2. + offset.g, u_time * .5 ) ) * .25 + .5,\r\n\t\tsnoise( vec3( vUv * 2. + offset.b, u_time * .5 ) ) * .25 + .5\r\n\t);\r\n\r\n\tvec3 rgb = texture2D(u_tex, vUv).rgb * noise;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.vertex.glsl":[function(require,module,exports){
-module.exports = "uniform float u_time;\r\nuniform vec2 u_resolution;\r\nuniform bool u_greyscale;\r\nuniform sampler2D u_tex;\r\n\r\nvarying vec2 vUv;\r\n\r\nvoid main() {\r\n\tvUv = uv;\r\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\r\n}";
+module.exports = "varying vec2 vUv;\r\n\r\nvoid main() {\r\n\tvUv = uv;\r\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\r\n}";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js":[function(require,module,exports){
 'use strict';
