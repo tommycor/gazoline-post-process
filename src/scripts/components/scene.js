@@ -54,7 +54,7 @@ module.exports = {
 		this.planeMaterial = new THREE.MeshBasicMaterial( {
 			color: 0xffffff,
 			side: THREE.DoubleSide,
-			map: THREE.ImageUtils.loadTexture( '/assets/medias/test_1.jpg' )
+			// map: THREE.ImageUtils.loadTexture( '/assets/medias/test_1.jpg' )
 		});
 		this.plane = new THREE.Mesh( this.planeGeometry, this.planeMaterial );
 		this.scene.add( this.plane );
@@ -102,16 +102,17 @@ module.exports = {
 		this.composer	= new EffectComposer( this.renderer );
 
 		this.postProcessUniforms = {
-			"u_time": { type: "f", value: null },
-			"u_resolution": { type: "v2", value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
-			"u_greyscale": { type: "i", value: config.greyscale },
-		},
+			u_time: { type: "f", value: .0 },
+			u_resolution: { type: "v2", value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
+			u_greyscale: { type: "i", value: config.greyscale },
+			u_tex: { type: 't', value: THREE.ImageUtils.loadTexture( config.textureURL ) }
+		};
 
 		this.gazolineShader = {
 			uniforms: this.postProcessUniforms,
 			vertexShader: require('../shaders/water.vertex.glsl'),
-			fragmentShader: require('../shaders/init.glsl') + require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl')
-		}
+			fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl')
+		};
 
 		this.cameraPass 	= new EffectComposer.RenderPass( this.scene, this.camera );
 		this.gazolinePass 	= new EffectComposer.ShaderPass( this.gazolineShader );
@@ -121,9 +122,8 @@ module.exports = {
 	},
 
 	render: function() {
-		let delta = this.clock.getDelta();
+		this.gazolineShader.uniforms['u_time'].value = this.clock.getElapsedTime();
 
-		// this.renderer.render(this.scene, this.camera);
 		this.composer.render();
 	}
 

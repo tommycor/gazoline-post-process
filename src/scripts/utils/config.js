@@ -19,7 +19,9 @@ var config = {
 		} 
 	},
 
-	greyscale: true
+	greyscale: true,
+
+	textureURL: '/assets/medias/test_1.jpg'
 }
 
 
