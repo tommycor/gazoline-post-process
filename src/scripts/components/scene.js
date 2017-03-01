@@ -1,13 +1,10 @@
-import * as THREE 		from "three";
-// import { EffectComposer, RenderPass } from "postprocessing";
-var EffectComposer = require('three-effectcomposer')(THREE);
+import * as THREE from "three";
 
-
-
-import config 			from '../utils/config';
-import raf 				from '../utils/raf';
-import mapper 			from '../utils/mapper';
-import GlslCanvas		from 'glslCanvas';
+import config 				from '../utils/config';
+import raf 					from '../utils/raf';
+import mapper 				from '../utils/mapper';
+import getIntersectionMouse from '../utils/getIntersectionMouse';
+import GlslCanvas			from 'glslCanvas';
 
 // THREE.EffectComposer = require('three-effectcomposer')(THREE);
 
@@ -23,6 +20,14 @@ module.exports = {
 		this.cameraPos	= new THREE.Vector3( config.camera.position.x, config.camera.position.y, config.camera.position.z );
 		this.plane   	= null;
 		this.composer 	= null;
+		this.explosionsPos 	= [];
+		this.explosionsTime = [];
+		this.explosionsIndex= 0;
+
+		for( let i = 0 ; i < config.maxInteractions - 1 ; i++ ) {
+			this.explosionsPos[i]  = new THREE.Vector2( 0, 0, 0 );
+			this.explosionsTime[i] = 100;
+		}
 		
 		this.scene 	   	= new THREE.Scene();
 		this.container 	= config.canvas.element;
@@ -54,7 +59,10 @@ module.exports = {
 			u_time: { type: "f", value: .0 },
 			u_resolution: { type: "v2", value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
 			u_greyscale: { type: "i", value: config.greyscale },
-			u_tex: { type: 't', value: THREE.ImageUtils.loadTexture( config.textureURL ) }
+			u_tex: { type: 't', value: THREE.ImageUtils.loadTexture( config.textureURL ) },
+			u_explosionsPos: { type: 'v2v', value: this.explosionsPos },
+			u_explosionsTime: { type: 'fv1', value: this.explosionsTime },
+			u_explosionsIndex: { type: 'i', value: this.explosionsIndex },
 		};
 
 		this.planeGeometry = new THREE.PlaneBufferGeometry( 100, 50, 0 );
@@ -76,10 +84,21 @@ module.exports = {
 		//// REGIST RENDERER
 		raf.register( this.render );
 		raf.start();
+
+		window.addEventListener( 'click', this.onClick );
+		window.addEventListener( 'resize', this.onResize );
+		window.addEventListener( 'mousemove', this.onMove );
 	},
 
 	onClick: function( event ) {
-		console.log( this.gazolineShader )
+
+		let position = getIntersectionMouse( event, this.plane, this.camera );
+
+		this.explosionsPos[ this.explosionsIndex ] = new THREE.Vector2( position.x, position.y );
+		this.explosionsTime[ this.explosionsIndex ] = 0;
+
+		this.explosionsIndex++;
+		this.gazolineUniforms.u_explosionsIndex.value = this.explosionsIndex;
 	},
 
 	onMove: function( event ) {
@@ -100,7 +119,15 @@ module.exports = {
 	},
 
 	render: function() {
-		this.planeMaterial.uniforms['u_time'].value = this.clock.getElapsedTime();
+		let delta = this.clock.getDelta();
+		this.planeMaterial.uniforms['u_time'].value += delta;
+
+		for( let i = 0 ; i < this.explosionsIndex ; i++ ) {
+			this.explosionsTime[i] += delta;
+		}
+
+		this.gazolineUniforms.u_explosionsTime.value = this.explosionsTime;
+		this.gazolineUniforms.u_explosionsPos.value = this.explosionsPos;
 
 		this.renderer.render(this.scene, this.camera);
 	}
