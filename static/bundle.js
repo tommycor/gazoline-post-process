@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\node_modules\\glslCanvas\\build\\GlslCanvas.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/node_modules/glslCanvas/build/GlslCanvas.js":[function(require,module,exports){
 (function (global){
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.GlslCanvas = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 module.exports = { "default": _dereq_("core-js/library/fn/array/from"), __esModule: true };
@@ -3223,7 +3223,7 @@ function subscribeMixin(target) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three\\build\\three.js":[function(require,module,exports){
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/node_modules/three/build/three.js":[function(require,module,exports){
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -46525,7 +46525,7 @@ function subscribeMixin(target) {
 
 })));
 
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js":[function(require,module,exports){
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/components/scene.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -46560,129 +46560,129 @@ var _glslCanvas2 = _interopRequireDefault(_glslCanvas);
 
 module.exports = {
 
-		init: function init() {
-				this.render = this.render.bind(this);
-				this.onResize = this.onResize.bind(this);
-				this.onMove = this.onMove.bind(this);
-				this.onClick = this.onClick.bind(this);
+	init: function init() {
+		this.render = this.render.bind(this);
+		this.onResize = this.onResize.bind(this);
+		this.onMove = this.onMove.bind(this);
+		this.onClick = this.onClick.bind(this);
 
-				this.clock = new THREE.Clock();
-				this.cameraPos = new THREE.Vector3(_utilsConfig2['default'].camera.position.x, _utilsConfig2['default'].camera.position.y, _utilsConfig2['default'].camera.position.z);
-				this.plane = null;
-				this.composer = null;
-				this.explosionsPos = [];
-				this.explosionsTime = [];
-				this.explosionsIndex = 0;
+		this.clock = new THREE.Clock();
+		this.cameraPos = new THREE.Vector3(_utilsConfig2['default'].camera.position.x, _utilsConfig2['default'].camera.position.y, _utilsConfig2['default'].camera.position.z);
+		this.plane = null;
+		this.composer = null;
+		this.explosionsPos = [];
+		this.explosionsTime = [];
+		this.explosionsIndex = 0;
 
-				for (var i = 0; i < _utilsConfig2['default'].maxInteractions - 1; i++) {
-						this.explosionsPos[i] = new THREE.Vector2(0, 0, 0);
-						this.explosionsTime[i] = 100;
-				}
-
-				this.scene = new THREE.Scene();
-				this.container = _utilsConfig2['default'].canvas.element;
-				this.canvas = document.createElement("canvas");
-
-				this.camera = new THREE.PerspectiveCamera(45, this.ratio, 15, 3000);
-				this.camera.position.x = _utilsConfig2['default'].camera.position.x;
-				this.camera.position.y = _utilsConfig2['default'].camera.position.y;
-				this.camera.position.z = _utilsConfig2['default'].camera.position.z;
-				this.camera.lookAt(_utilsConfig2['default'].camera.target);
-
-				if (_utilsConfig2['default'].axisHelper) {
-						this.axisHelper = new THREE.AxisHelper(5);
-						this.scene.add(this.axisHelper);
-				}
-
-				//// RENDERER
-				this.renderer = new THREE.WebGLRenderer();
-				this.renderer.setClearColor(_utilsConfig2['default'].canvas.color, 1.0);
-				this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-				//// AMBIANT LIGHT
-				this.ambient = new THREE.AmbientLight(_utilsConfig2['default'].lights.ambient.color);
-
-				//// ADD OBJECTS TO SCENE
-				this.scene.add(this.ambient);
-
-				this.gazolineUniforms = {
-						u_time: { type: "f", value: .0 },
-						u_resolution: { type: "v2", value: THREE.Vector2(this.canvas.width, this.canvas.height) },
-						u_greyscale: { type: "i", value: _utilsConfig2['default'].greyscale },
-						u_tex: { type: 't', value: THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) },
-						u_explosionsPos: { type: 'v2v', value: this.explosionsPos },
-						u_explosionsTime: { type: 'fv1', value: this.explosionsTime },
-						u_explosionsIndex: { type: 'i', value: this.explosionsIndex }
-				};
-
-				this.planeGeometry = new THREE.PlaneBufferGeometry(100, 50, 0);
-				this.planeMaterial = new THREE.ShaderMaterial({
-						color: 0xffffff,
-						vertexShader: require('../shaders/water.vertex.glsl'),
-						fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl'),
-						uniforms: this.gazolineUniforms
-				});
-				this.plane = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
-				this.scene.add(this.plane);
-
-				//// ADD CANVAS TO DOM
-				this.container.appendChild(this.renderer.domElement);
-
-				this.onResize();
-
-				//// REGIST RENDERER
-				_utilsRaf2['default'].register(this.render);
-				_utilsRaf2['default'].start();
-
-				window.addEventListener('click', this.onClick);
-				window.addEventListener('resize', this.onResize);
-				window.addEventListener('mousemove', this.onMove);
-		},
-
-		onClick: function onClick(event) {
-
-				var position = (0, _utilsGetIntersectionMouse2['default'])(event, this.plane, this.camera);
-
-				this.explosionsPos[this.explosionsIndex] = new THREE.Vector2(position.x, position.y);
-				this.explosionsTime[this.explosionsIndex] = 0;
-
-				this.explosionsIndex++;
-				this.gazolineUniforms.u_explosionsIndex.value = this.explosionsIndex;
-		},
-
-		onMove: function onMove(event) {},
-
-		onResize: function onResize() {
-				this.canvas.width = this.container.offsetWidth;
-				this.canvas.height = this.container.offsetHeight;
-
-				this.renderer.setSize(window.innerWidth, window.innerHeight);
-				this.ratio = window.innerWidth / window.innerHeight;
-
-				this.camera.aspect = this.ratio;
-				this.camera.updateProjectionMatrix();
-
-				this.halfWidth = window.innerWidth * .5;
-				this.halfHeight = window.innerHeight * .5;
-		},
-
-		render: function render() {
-				var delta = this.clock.getDelta();
-				this.planeMaterial.uniforms['u_time'].value += delta;
-
-				for (var i = 0; i < this.explosionsIndex; i++) {
-						this.explosionsTime[i] += delta;
-				}
-
-				this.gazolineUniforms.u_explosionsTime.value = this.explosionsTime;
-				this.gazolineUniforms.u_explosionsPos.value = this.explosionsPos;
-
-				this.renderer.render(this.scene, this.camera);
+		for (var i = 0; i < _utilsConfig2['default'].maxInteractions - 1; i++) {
+			this.explosionsPos[i] = new THREE.Vector2(0, 0, 0);
+			this.explosionsTime[i] = 100;
 		}
+
+		this.scene = new THREE.Scene();
+		this.container = _utilsConfig2['default'].canvas.element;
+		this.canvas = document.createElement("canvas");
+
+		this.camera = new THREE.PerspectiveCamera(45, this.ratio, 15, 3000);
+		this.camera.position.x = _utilsConfig2['default'].camera.position.x;
+		this.camera.position.y = _utilsConfig2['default'].camera.position.y;
+		this.camera.position.z = _utilsConfig2['default'].camera.position.z;
+		this.camera.lookAt(_utilsConfig2['default'].camera.target);
+
+		if (_utilsConfig2['default'].axisHelper) {
+			this.axisHelper = new THREE.AxisHelper(5);
+			this.scene.add(this.axisHelper);
+		}
+
+		//// RENDERER
+		this.renderer = new THREE.WebGLRenderer();
+		this.renderer.setClearColor(_utilsConfig2['default'].canvas.color, 1.0);
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+		//// AMBIANT LIGHT
+		this.ambient = new THREE.AmbientLight(_utilsConfig2['default'].lights.ambient.color);
+
+		//// ADD OBJECTS TO SCENE
+		this.scene.add(this.ambient);
+
+		this.gazolineUniforms = {
+			u_time: { type: "f", value: .0 },
+			u_resolution: { type: "v2", value: THREE.Vector2(this.canvas.width, this.canvas.height) },
+			u_greyscale: { type: "i", value: _utilsConfig2['default'].greyscale },
+			u_tex: { type: 't', value: THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) },
+			u_explosionsPos: { type: 'v2v', value: this.explosionsPos },
+			u_explosionsTime: { type: 'fv1', value: this.explosionsTime },
+			u_explosionsIndex: { type: 'i', value: this.explosionsIndex }
+		};
+
+		this.planeGeometry = new THREE.PlaneBufferGeometry(100, 50, 0);
+		this.planeMaterial = new THREE.ShaderMaterial({
+			color: 0xffffff,
+			vertexShader: require('../shaders/water.vertex.glsl'),
+			fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl'),
+			uniforms: this.gazolineUniforms
+		});
+		this.plane = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
+		this.scene.add(this.plane);
+
+		//// ADD CANVAS TO DOM
+		this.container.appendChild(this.renderer.domElement);
+
+		this.onResize();
+
+		//// REGIST RENDERER
+		_utilsRaf2['default'].register(this.render);
+		_utilsRaf2['default'].start();
+
+		window.addEventListener('click', this.onClick);
+		window.addEventListener('resize', this.onResize);
+		window.addEventListener('mousemove', this.onMove);
+	},
+
+	onClick: function onClick(event) {
+
+		var position = (0, _utilsGetIntersectionMouse2['default'])(event, this.plane, this.camera);
+
+		this.explosionsPos[this.explosionsIndex] = new THREE.Vector2(position.x, position.y);
+		this.explosionsTime[this.explosionsIndex] = 0;
+		this.explosionsIndex++;
+
+		this.gazolineUniforms.u_explosionsIndex.value = this.explosionsIndex;
+		this.gazolineUniforms.u_explosionsPos.value = this.explosionsPos;
+	},
+
+	onMove: function onMove(event) {},
+
+	onResize: function onResize() {
+		this.canvas.width = this.container.offsetWidth;
+		this.canvas.height = this.container.offsetHeight;
+
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.ratio = window.innerWidth / window.innerHeight;
+
+		this.camera.aspect = this.ratio;
+		this.camera.updateProjectionMatrix();
+
+		this.halfWidth = window.innerWidth * .5;
+		this.halfHeight = window.innerHeight * .5;
+	},
+
+	render: function render() {
+		var delta = this.clock.getDelta();
+		this.planeMaterial.uniforms['u_time'].value += delta;
+
+		for (var i = 0; i < this.explosionsIndex; i++) {
+			this.explosionsTime[i] += delta;
+		}
+
+		this.gazolineUniforms.u_explosionsTime.value = this.explosionsTime;
+
+		this.renderer.render(this.scene, this.camera);
+	}
 
 };
 
-},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../shaders/water.vertex.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.vertex.glsl","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/getIntersectionMouse":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\getIntersectionMouse.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/raf":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js","glslCanvas":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\glslCanvas\\build\\GlslCanvas.js","three":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three\\build\\three.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
+},{"../shaders/noises/noise3D.glsl":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/noises/noise3D.glsl","../shaders/water.fragment.glsl":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/water.fragment.glsl","../shaders/water.vertex.glsl":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/water.vertex.glsl","../utils/config":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/config.js","../utils/getIntersectionMouse":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/getIntersectionMouse.js","../utils/mapper":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/mapper.js","../utils/raf":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/raf.js","glslCanvas":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/node_modules/glslCanvas/build/GlslCanvas.js","three":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -46696,16 +46696,16 @@ window.onload = function () {
 	_componentsScene2['default'].init();
 };
 
-},{"./components/scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl":[function(require,module,exports){
-module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
+},{"./components/scene":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/components/scene.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/noises/noise3D.glsl":[function(require,module,exports){
+module.exports = "//\n// Description : Array and textureless GLSL 2D/3D/4D simplex \n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : stegu\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//               https://github.com/stegu/webgl-noise\n// \n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat snoise(vec3 v)\n  { \n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n// First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n// Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n// Permutations\n  i = mod289(i); \n  vec4 p = permute( permute( permute( \n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n//Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n// Mix final noise value\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \n                                dot(p2,x2), dot(p3,x3) ) );\n  }\n";
 
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
-module.exports = "uniform float u_time;\r\nuniform vec2 u_resolution;\r\nuniform bool u_greyscale;\r\nuniform sampler2D u_tex;\r\n\r\nvarying vec2 vUv;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 rgb = vec3(.0, .0, .0);\r\n\r\nvoid main() {\r\n\tvec3 noise = vec3(\r\n\t\tsnoise( vec3( vUv * 2. + offset.r, u_time * .5 ) ) * .5 + .5,\r\n\t\tsnoise( vec3( vUv * 2. + offset.g, u_time * .5 ) ) * .5 + .5,\r\n\t\tsnoise( vec3( vUv * 2. + offset.b, u_time * .5 ) ) * .5 + .5\r\n\t);\r\n\r\n\tvec3 rgb = texture2D(u_tex, vUv).rgb * noise;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/water.fragment.glsl":[function(require,module,exports){
+module.exports = "#define MAX_INT 200\n#define MAX_DIST 200.\n#define MAX_Time 10.\n\nuniform float u_time;\nuniform vec2 u_resolution;\nuniform bool u_greyscale;\nuniform sampler2D u_tex;\n\nuniform float interactionsTime[ MAX_INT ];\nuniform vec2 interactionsPos[ MAX_INT ];\nuniform int interactionsIndex;\n\nvarying vec2 vUv;\nvarying vec3 v_position;\n\nvec3 offset = vec3( 0., .1, .2);\nvec3 rgb = vec3(.0, .0, .0);\n\nvoid main() {\n\tvec3 noise \t= vec3(0., 0., 0.);\n\tvec3 rgb \t= vec3(0., 0., 0.);\n\tfloat dist  = 0.;\n\n\n\tnoise = vec3(\n\t\tsnoise( vec3( vUv * 2. + offset.r, u_time * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.g, u_time * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.b, u_time * .5 ) ) * .5 + .75\n\t);\n\n\trgb = texture2D(u_tex, vUv).rgb * noise;\n\n\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\n\t\tif( i >= interactionsIndex ) {\n\t\t\tbreak;\n\t\t}\n\n\t\tdist = distance( vec3( interactionsPos[i], .0 ), v_position );\n\n\t\tif( dist < 5. ) {\n\t\t\trgb.r = 1.;\n\t\t}\n\t}\n\n\n\tgl_FragColor = vec4( rgb, 1. );\n}\n";
 
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.vertex.glsl":[function(require,module,exports){
-module.exports = "varying vec2 vUv;\r\n\r\nvoid main() {\r\n\tvUv = uv;\r\n\t\r\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\r\n}";
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/water.vertex.glsl":[function(require,module,exports){
+module.exports = "varying vec2 vUv;\nvarying vec3 v_position;\n\nvoid main() {\n\tvUv = uv;\n\n\tv_position = position;\n\t\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n}";
 
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js":[function(require,module,exports){
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/config.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
@@ -46742,7 +46742,7 @@ var config = {
 
 module.exports = config;
 
-},{"three":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three\\build\\three.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\getIntersectionMouse.js":[function(require,module,exports){
+},{"three":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/getIntersectionMouse.js":[function(require,module,exports){
 "use strict";
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj["default"] = obj; return newObj; } }
@@ -46771,7 +46771,7 @@ function getIntersectionMouse(event, mesh, camera) {
 
 module.exports = getIntersectionMouse;
 
-},{"three":"D:\\Documents\\git\\gazoline-post-process\\node_modules\\three\\build\\three.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js":[function(require,module,exports){
+},{"three":"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/node_modules/three/build/three.js"}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/mapper.js":[function(require,module,exports){
 // https://github.com/tommycor/mapperJS/blob/master/mapper-min.js
 "use strict";
 
@@ -46781,7 +46781,7 @@ function mapper(val, oMin, oMax, nMin, nMax) {
 
 module.exports = mapper;
 
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js":[function(require,module,exports){
+},{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/raf.js":[function(require,module,exports){
 'use strict';
 
 function Raf() {
@@ -46830,6 +46830,6 @@ Raf.prototype.control = function (event) {
 
 module.exports = new Raf();
 
-},{}]},{},["D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js"])
+},{}]},{},["/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/initialize.js"])
 
 //# sourceMappingURL=bundle.js.map

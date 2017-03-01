@@ -96,9 +96,10 @@ module.exports = {
 
 		this.explosionsPos[ this.explosionsIndex ] = new THREE.Vector2( position.x, position.y );
 		this.explosionsTime[ this.explosionsIndex ] = 0;
-
 		this.explosionsIndex++;
+		
 		this.gazolineUniforms.u_explosionsIndex.value = this.explosionsIndex;
+		this.gazolineUniforms.u_explosionsPos.value = this.explosionsPos;
 	},
 
 	onMove: function( event ) {
@@ -127,7 +128,6 @@ module.exports = {
 		}
 
 		this.gazolineUniforms.u_explosionsTime.value = this.explosionsTime;
-		this.gazolineUniforms.u_explosionsPos.value = this.explosionsPos;
 
 		this.renderer.render(this.scene, this.camera);
 	}
