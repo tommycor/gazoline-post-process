@@ -2,17 +2,17 @@
 #define MAX_DIST 200.
 #define MAX_Time 10.
 
-uniform float u_time;
-uniform vec2 u_resolution;
-uniform bool u_greyscale;
-uniform sampler2D u_tex;
+uniform float uTime;
+uniform vec2 uResolution;
+uniform bool uGreyscale;
+uniform sampler2D uTex;
 
-uniform float interactionsTime[ MAX_INT ];
-uniform vec2 interactionsPos[ MAX_INT ];
-uniform int interactionsIndex;
+uniform float uInteractionsTime[ MAX_INT ];
+uniform vec2 uInteractionsPos[ MAX_INT ];
+uniform int uInteractionsIndex;
 
 varying vec2 vUv;
-varying vec3 v_position;
+varying vec3 vPosition;
 
 vec3 offset = vec3( 0., .1, .2);
 vec3 rgb = vec3(.0, .0, .0);
@@ -24,26 +24,27 @@ void main() {
 
 
 	noise = vec3(
-		snoise( vec3( vUv * 2. + offset.r, u_time * .5 ) ) * .5 + .75,
-		snoise( vec3( vUv * 2. + offset.g, u_time * .5 ) ) * .5 + .75,
-		snoise( vec3( vUv * 2. + offset.b, u_time * .5 ) ) * .5 + .75
+		snoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,
+		snoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,
+		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75
 	);
 
-	rgb = texture2D(u_tex, vUv).rgb * noise;
+	rgb = texture2D(uTex, vUv).rgb * noise;
 
 
 	for( int i = 0 ; i < MAX_INT ; i++ ) {
-		if( i >= interactionsIndex ) {
+		if( i >= uInteractionsIndex ) {
 			break;
 		}
 
-		dist = distance( vec3( interactionsPos[i], .0 ), v_position );
+		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
 
 		if( dist < 5. ) {
-			rgb.r = 1.;
+			rgb = vec3(1.);
 		}
 	}
 
+	
 
 	gl_FragColor = vec4( rgb, 1. );
 }

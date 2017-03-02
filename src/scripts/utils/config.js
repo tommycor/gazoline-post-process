@@ -23,7 +23,7 @@ var config = {
 
 	textureURL: '/assets/medias/test_1.jpg',
 
-	maxInteractions: 0
+	maxInteractions: 200
 }
 
 

@@ -20,13 +20,13 @@ module.exports = {
 		this.cameraPos	= new THREE.Vector3( config.camera.position.x, config.camera.position.y, config.camera.position.z );
 		this.plane   	= null;
 		this.composer 	= null;
-		this.explosionsPos 	= [];
-		this.explosionsTime = [];
-		this.explosionsIndex= 0;
+		this.interactionsPos 	= new Array();
+		this.interactionsTime 	= new Array();
+		this.interactionsIndex 	= 0;
 
-		for( let i = 0 ; i < config.maxInteractions - 1 ; i++ ) {
-			this.explosionsPos[i]  = new THREE.Vector2( 0, 0, 0 );
-			this.explosionsTime[i] = 100;
+		for( let i = 0 ; i < config.maxInteractions ; i++ ) {
+			this.interactionsPos[i]  = new THREE.Vector2( 0, 0, 0 );
+			this.interactionsTime[i] = 100;
 		}
 		
 		this.scene 	   	= new THREE.Scene();
@@ -56,18 +56,17 @@ module.exports = {
 		this.scene.add( this.ambient );
 
 		this.gazolineUniforms = {
-			u_time: { type: "f", value: .0 },
-			u_resolution: { type: "v2", value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
-			u_greyscale: { type: "i", value: config.greyscale },
-			u_tex: { type: 't', value: THREE.ImageUtils.loadTexture( config.textureURL ) },
-			u_explosionsPos: { type: 'v2v', value: this.explosionsPos },
-			u_explosionsTime: { type: 'fv1', value: this.explosionsTime },
-			u_explosionsIndex: { type: 'i', value: this.explosionsIndex },
+			uTime: 				{ type: "f", 	value: .0 },
+			uResolution: 		{ type: "v2", 	value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
+			uGreyscale: 		{ type: "i", 	value: config.greyscale },
+			uTex: 				{ type: 't', 	value: THREE.ImageUtils.loadTexture( config.textureURL ) },
+			uInteractionsPos: 	{ type: 'v2v', 	value: this.interactionsPos },
+			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
+			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
 		this.planeGeometry = new THREE.PlaneBufferGeometry( 100, 50, 0 );
 		this.planeMaterial = new THREE.ShaderMaterial( {
-			color: 0xffffff,
 			vertexShader: require('../shaders/water.vertex.glsl'),
 			fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl'),
 			uniforms: this.gazolineUniforms
@@ -94,12 +93,13 @@ module.exports = {
 
 		let position = getIntersectionMouse( event, this.plane, this.camera );
 
-		this.explosionsPos[ this.explosionsIndex ] = new THREE.Vector2( position.x, position.y );
-		this.explosionsTime[ this.explosionsIndex ] = 0;
-		this.explosionsIndex++;
+		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector2( position.x, position.y );
+		this.interactionsTime[ this.interactionsIndex ] = 0;
+		this.interactionsIndex++;
 		
-		this.gazolineUniforms.u_explosionsIndex.value = this.explosionsIndex;
-		this.gazolineUniforms.u_explosionsPos.value = this.explosionsPos;
+		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
+		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+
 	},
 
 	onMove: function( event ) {
@@ -121,13 +121,13 @@ module.exports = {
 
 	render: function() {
 		let delta = this.clock.getDelta();
-		this.planeMaterial.uniforms['u_time'].value += delta;
+		this.gazolineUniforms.uTime.value += delta;
 
-		for( let i = 0 ; i < this.explosionsIndex ; i++ ) {
-			this.explosionsTime[i] += delta;
+		for( let i = 0 ; i < this.interactionsIndex ; i++ ) {
+			this.interactionsTime[i] += delta;
 		}
 
-		this.gazolineUniforms.u_explosionsTime.value = this.explosionsTime;
+		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
 
 		this.renderer.render(this.scene, this.camera);
 	}
