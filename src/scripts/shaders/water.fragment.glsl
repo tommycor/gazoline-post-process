@@ -1,4 +1,4 @@
-#define MAX_INT 200
+
 #define MAX_DIST 200.
 #define MAX_Time 10.
 

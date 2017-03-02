@@ -68,7 +68,7 @@ module.exports = {
 		this.planeGeometry = new THREE.PlaneBufferGeometry( 100, 50, 0 );
 		this.planeMaterial = new THREE.ShaderMaterial( {
 			vertexShader: require('../shaders/water.vertex.glsl'),
-			fragmentShader: require('../shaders/noises/noise3D.glsl') + require('../shaders/water.fragment.glsl'),
+			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT '+ config.maxInteractions + require('../shaders/water.fragment.glsl'),
 			uniforms: this.gazolineUniforms
 		});
 		this.plane = new THREE.Mesh( this.planeGeometry, this.planeMaterial );
