@@ -24,11 +24,8 @@ void main() {
 	float dist  = .0;
 	float influence = .0;
 	float displacement = .0;
-	float frequency = 2.;
-	float amplitude = 2.;
-	float shift = 5.;
-
-	vec3 sinVal = vec3( .0, .0, .0);
+	float frequency = 1.;
+	float attenuation = 2.;
 
 
 	noise = vec3(
@@ -37,7 +34,7 @@ void main() {
 		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75
 	);
 
-	rgb = texture2D(uTex, vUv).rgb * noise;
+	// rgb = texture2D(uTex, vUv).rgb * noise;
 
 
 	for( int i = 0 ; i < MAX_INT ; i++ ) {
@@ -53,11 +50,8 @@ void main() {
 		if( influence > .0 ) {
 			rgb = rgb.rgb + influence;
 		}
-		// rgb = rgb.rgb + sin( dist * uTime );
-		
-		sinVal.r = sin( dist + uTime * frequency ) * amplitude + shift;
-
-		rgb = rgb.rgb + sin( dist + uTime * 2. ) * .2 + .5;
+		rgb = rgb.rgb + sin( dist * uTime );
+		// rgb = rgb.rgb + sin( dist + uTime * 2. ) * .5 + .5;
 
 
 		// SOMBRERO FUNCTION
