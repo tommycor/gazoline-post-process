@@ -1,5 +1,5 @@
 
-#define MAX_DIST 200.
+#define MAX_DIST 5.
 #define MAX_Time 10.
 
 uniform float uTime;
@@ -18,9 +18,14 @@ vec3 offset = vec3( 0., .1, .2);
 vec3 rgb = vec3(.0, .0, .0);
 
 void main() {
-	vec3 noise 	= vec3(0., 0., 0.);
-	vec3 rgb 	= vec3(0., 0., 0.);
-	float dist  = 0.;
+	vec3 noise 	= vec3(.0, .0, .0);
+	vec3 rgb 	= vec3(.0, .0, .0);
+	vec2 diff 	= vec2(.0, .0);
+	float dist  = .0;
+	float influence = .0;
+	float displacement = .0;
+	float frequency = 1.;
+	float attenuation = 2.;
 
 
 	noise = vec3(
@@ -39,9 +44,21 @@ void main() {
 
 		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
 
-		if( dist < 5. ) {
-			rgb = vec3(1.);
+		influence = ( dist * -.2 ) + .5;
+
+		// influence is gonna act on sombrero function
+		if( influence > .0 ) {
+			rgb = rgb.rgb + influence;
 		}
+
+		diff = uInteractionsPos[i].xy - vPosition.xy;
+
+		// SOMBRERO FUNCTION
+		// float r = sqrt( pow( ( diff.x ) * frequency, 2.) +  pow( ( diff.y ) * frequency, 2.) );		
+		// displacement = sin( r ) / r;
+
+		rgb = rgb.rgb + displacement;
+
 	}
 
 	
