@@ -143,7 +143,7 @@ module.exports = {
 			this.interactionsTime[i] += delta;
 
 			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if( this.interactionsTime[i] > 2 &&  this.interactionsTime[i] < 50 ) {
+			if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
 				this.interactionsTime.shift()
 				this.interactionsPos.shift();
 				this.interactionsIndex--;

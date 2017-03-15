@@ -27,7 +27,7 @@ void main() {
 	float influenceTime = .0;
 	float displacement = .0;
 	float frequency = 2.5;
-	float amplitude = .5;
+	float amplitude = .2;
 	float waveLength = .5;
 	float shift = .0;
 
@@ -50,13 +50,17 @@ void main() {
 
 		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
 
-		influence = ( dist * influenceSlope ) + 1.;
+		// INFLUENCE FROM DIST
+		if( uInteractionsTime[i] < 2. ) {
+			influence = ( dist * influenceSlope ) + uInteractionsTime[i] * 1.;
+		}
+
 
 		influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
 
 		if( influenceTime > .0 ) {
 
-			influence = influence * ( uInteractionsTime[i] * -.5 + 1.) ;
+			influence = influence * influenceTime ;
 
 			// influence is gonna act on sombrero function
 			if( influence > .0 ) {
