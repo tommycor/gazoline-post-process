@@ -15,6 +15,8 @@ module.exports = {
 		this.onResize	= this.onResize.bind(this);
 		this.onMove		= this.onMove.bind(this);
 		this.onClick	= this.onClick.bind(this);
+		this.onMouseDown= this.onMouseDown.bind(this);
+		this.onMouseUp	= this.onMouseUp.bind(this);
 
 		this.clock   	= new THREE.Clock();
 		this.cameraPos	= new THREE.Vector3( config.camera.position.x, config.camera.position.y, config.camera.position.z );
@@ -85,24 +87,27 @@ module.exports = {
 		raf.start();
 
 		window.addEventListener( 'click', this.onClick );
+		window.addEventListener( 'mousedown', this.onMouseDown );
+		window.addEventListener( 'mouseup', this.onMouseUp );
 		window.addEventListener( 'resize', this.onResize );
 		window.addEventListener( 'mousemove', this.onMove );
 	},
 
 	onClick: function( event ) {
-
-		let position = getIntersectionMouse( event, this.plane, this.camera );
-
-		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector2( position.x, position.y );
-		this.interactionsTime[ this.interactionsIndex ] = 0;
-		this.interactionsIndex++;
-		
-		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
-		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
-
 	},
 
 	onMove: function( event ) {
+		if( this.isCapting ) {
+			this.addInteractionFromEvent( event );
+		}
+	},
+
+	onMouseDown: function() {
+		this.isCapting = true;
+	},
+
+	onMouseUp: function() {
+		this.isCapting = false;
 	},
 
 	onResize: function() {
@@ -117,6 +122,17 @@ module.exports = {
 
 		this.halfWidth = window.innerWidth * .5;
 		this.halfHeight = window.innerHeight * .5;
+	},
+
+	addInteractionFromEvent: function() {
+		let position = getIntersectionMouse( event, this.plane, this.camera );
+
+		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector2( position.x, position.y );
+		this.interactionsTime[ this.interactionsIndex ] = 0;
+		this.interactionsIndex++;
+		
+		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
+		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
 	},
 
 	render: function() {

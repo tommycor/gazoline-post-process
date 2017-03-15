@@ -23,10 +23,13 @@ void main() {
 	vec2 diff 	= vec2(.0, .0);
 	float dist  = .0;
 	float influence = .0;
+	float influenceSlope = -.05;
+	float influenceTime = .0;
 	float displacement = .0;
 	float frequency = 2.;
-	float amplitude = 2.;
-	float shift = 5.;
+	float amplitude = .5;
+	float waveLength = .5;
+	float shift = .0;
 
 	vec3 sinVal = vec3( .0, .0, .0);
 
@@ -47,18 +50,24 @@ void main() {
 
 		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
 
-		influence = ( dist * -.2 ) + .5;
+		influence = ( dist * influenceSlope ) + 1.;
 
-		// influence is gonna act on sombrero function
-		if( influence > .0 ) {
-			rgb = rgb.rgb + influence;
+		influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
+
+		if( influenceTime > .0 ) {
+
+			influence = influence * ( uInteractionsTime[i] * -.5 + 1.) ;
+
+			// influence is gonna act on sombrero function
+			if( influence > .0 ) {
+
+				sinVal = sin( ( dist * waveLength - uInteractionsTime[i] * frequency ) + offset ) * amplitude + shift;
+
+				sinVal = sinVal * influence;
+
+				rgb = rgb + rgb * sinVal;
+			}
 		}
-		// rgb = rgb.rgb + sin( dist * uTime );
-		
-		sinVal.r = sin( dist + uTime * frequency ) * amplitude + shift;
-
-		rgb = rgb.rgb + sin( dist + uTime * 2. ) * .2 + .5;
-
 
 		// SOMBRERO FUNCTION
 		// diff = uInteractionsPos[i].xy - vPosition.xy;
