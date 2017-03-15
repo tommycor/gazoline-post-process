@@ -46578,7 +46578,7 @@ module.exports = {
 
 		for (var i = 0; i < _utilsConfig2['default'].maxInteractions; i++) {
 			this.interactionsPos[i] = new THREE.Vector2(0, 0, 0);
-			this.interactionsTime[i] = 100;
+			this.interactionsTime[i] = 0;
 		}
 
 		this.scene = new THREE.Scene();
@@ -46689,6 +46689,19 @@ module.exports = {
 
 		for (var i = 0; i < this.interactionsIndex; i++) {
 			this.interactionsTime[i] += delta;
+
+			// DEAL WITH TOO OLD VARIABLES
+			if (this.interactionsTime[i] > 2 && this.interactionsTime[i] < 50) {
+				this.interactionsTime.shift();
+				this.interactionsPos.shift();
+				this.interactionsIndex--;
+
+				this.interactionsPos.push(new THREE.Vector2(0, 0, 0));
+				this.interactionsTime.push(100);
+
+				this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
+				this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+			}
 		}
 
 		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
