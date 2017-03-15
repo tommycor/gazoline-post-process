@@ -127,6 +127,10 @@ module.exports = {
 	addInteractionFromEvent: function() {
 		let position = getIntersectionMouse( event, this.plane, this.camera );
 
+		if( this.interactionsIndex > config.maxInteractions ) {
+			this.removeFirst();
+		}
+
 		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector2( position.x, position.y );
 		this.interactionsTime[ this.interactionsIndex ] = 0;
 		this.interactionsIndex++;
@@ -144,21 +148,26 @@ module.exports = {
 
 			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
 			if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
-				this.interactionsTime.shift()
-				this.interactionsPos.shift();
-				this.interactionsIndex--;
-
-				this.interactionsPos.push( new THREE.Vector2( 0, 0, 0 ) );
-				this.interactionsTime.push( 100 );
-
-				this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
-				this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+				this.removeFirst();
 			}
 		}
 
 		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
 
 		this.renderer.render(this.scene, this.camera);
-	}
+	},
+
+	removeFirst: function() {
+		this.interactionsTime.shift()
+		this.interactionsPos.shift();
+		this.interactionsIndex--;
+
+		this.interactionsPos.push( new THREE.Vector2( 0, 0, 0 ) );
+		this.interactionsTime.push( 100 );
+
+		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
+		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+
+	},
 
 };
