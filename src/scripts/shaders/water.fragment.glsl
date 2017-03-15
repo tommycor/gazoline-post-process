@@ -26,7 +26,7 @@ void main() {
 	float influenceSlope = -.05;
 	float influenceTime = .0;
 	float displacement = .0;
-	float frequency = 2.;
+	float frequency = 2.5;
 	float amplitude = .5;
 	float waveLength = .5;
 	float shift = .0;

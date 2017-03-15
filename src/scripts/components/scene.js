@@ -142,7 +142,7 @@ module.exports = {
 		for( let i = 0 ; i < this.interactionsIndex ; i++ ) {
 			this.interactionsTime[i] += delta;
 
-			// DEAL WITH TOO OLD VARIABLES
+			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
 			if( this.interactionsTime[i] > 2 &&  this.interactionsTime[i] < 50 ) {
 				this.interactionsTime.shift()
 				this.interactionsPos.shift();

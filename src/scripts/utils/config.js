@@ -21,7 +21,7 @@ var config = {
 
 	greyscale: true,
 
-	textureURL: '/assets/medias/test_1.jpg',
+	textureURL: './assets/medias/test_1.jpg',
 
 	maxInteractions: 400
 }
