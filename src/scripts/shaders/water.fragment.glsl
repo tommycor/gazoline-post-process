@@ -1,5 +1,5 @@
 
-#define MAX_DIST 5.
+#define MAX_DIST 20.
 #define MAX_Time 10.
 
 uniform float uTime;
@@ -50,19 +50,19 @@ void main() {
 
 		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
 
-		// INFLUENCE FROM DIST
-		if( uInteractionsTime[i] < 2. ) {
-			influence = ( dist * influenceSlope ) + uInteractionsTime[i] * 1.;
+		// INFLUENCE FROM DIST + SPAWNING 
+		if( uInteractionsTime[i] < 2. && dist < MAX_DIST ) {
+			influence = ( dist * influenceSlope ) + uInteractionsTime[i] * .5 + .3;
 		}
 
-
+		// FADE OUT
 		influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
 
 		if( influenceTime > .0 ) {
 
 			influence = influence * influenceTime ;
 
-			// influence is gonna act on sombrero function
+			// influence is gonna act on simili sombrero function
 			if( influence > .0 ) {
 
 				sinVal = sin( ( dist * waveLength - uInteractionsTime[i] * frequency ) + offset ) * amplitude + shift;

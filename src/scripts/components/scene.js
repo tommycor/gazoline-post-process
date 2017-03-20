@@ -57,11 +57,14 @@ module.exports = {
 		//// ADD OBJECTS TO SCENE
 		this.scene.add( this.ambient );
 
+		this.createVideo();
+
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uResolution: 		{ type: "v2", 	value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
 			uGreyscale: 		{ type: "i", 	value: config.greyscale },
 			uTex: 				{ type: 't', 	value: THREE.ImageUtils.loadTexture( config.textureURL ) },
+			// uTex: 				{ type: 't', 	value: this.videoTexture },
 			uInteractionsPos: 	{ type: 'v2v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
@@ -87,10 +90,10 @@ module.exports = {
 		raf.start();
 
 		window.addEventListener( 'click', this.onClick );
-		window.addEventListener( 'mousedown', this.onMouseDown );
-		window.addEventListener( 'mouseup', this.onMouseUp );
+		window.addEventListener( 'pointerdown', this.onMouseDown );
+		window.addEventListener( 'pointerup', this.onMouseUp );
 		window.addEventListener( 'resize', this.onResize );
-		window.addEventListener( 'mousemove', this.onMove );
+		window.addEventListener( 'pointermove', this.onMove );
 	},
 
 	onClick: function( event ) {
@@ -102,20 +105,23 @@ module.exports = {
 		}
 	},
 
-	onMouseDown: function() {
+	onMouseDown: function( event ) {
 		this.isCapting = true;
 	},
 
-	onMouseUp: function() {
+	onMouseUp: function( event ) {
 		this.isCapting = false;
 	},
 
 	onResize: function() {
-		this.canvas.width = this.container.offsetWidth;
-		this.canvas.height = this.container.offsetHeight;
+		this.canvas.width = this.container.offsetWidth / config.scale;
+		this.canvas.height = this.container.offsetHeight / config.scale;
 
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(this.canvas.width, this.canvas.height);
 		this.ratio = window.innerWidth / window.innerHeight;
+
+		this.renderer.domElement.style.transform = 'scale(' + config.scale + ')';
+		this.renderer.domElement.style.transformOrigin = '0 0';
 
 		this.camera.aspect = this.ratio;
 		this.camera.updateProjectionMatrix();
@@ -124,7 +130,7 @@ module.exports = {
 		this.halfHeight = window.innerHeight * .5;
 	},
 
-	addInteractionFromEvent: function() {
+	addInteractionFromEvent: function( event ) {
 		let position = getIntersectionMouse( event, this.plane, this.camera );
 
 		if( this.interactionsIndex > config.maxInteractions ) {
@@ -167,7 +173,27 @@ module.exports = {
 
 		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
 		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
-
 	},
+
+	createVideo: function() {
+		this.video = document.createElement( 'video' );
+		this.video.src = config.video.url;
+		this.video.load();
+		this.video.play();
+
+		this.video.style.width = "200px";
+		this.video.style.height = "200px";
+		this.video.style.display = "block";
+		this.video.style.position = "absolute";
+		this.video.style.top = "0";
+		this.video.style.left = "0";
+
+		document.body.appendChild( this.video );
+
+		this.textureVideo = new THREE.VideoTexture( this.video );
+		this.textureVideo.minFilter = THREE.LinearFilter;
+		this.textureVideo.magFilter = THREE.LinearFilter;
+		this.textureVideo.format = THREE.RGBFormat;
+	}
 
 };

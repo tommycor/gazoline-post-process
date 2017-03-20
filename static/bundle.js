@@ -46560,162 +46560,189 @@ var _glslCanvas2 = _interopRequireDefault(_glslCanvas);
 
 module.exports = {
 
-	init: function init() {
-		this.render = this.render.bind(this);
-		this.onResize = this.onResize.bind(this);
-		this.onMove = this.onMove.bind(this);
-		this.onClick = this.onClick.bind(this);
-		this.onMouseDown = this.onMouseDown.bind(this);
-		this.onMouseUp = this.onMouseUp.bind(this);
+		init: function init() {
+				this.render = this.render.bind(this);
+				this.onResize = this.onResize.bind(this);
+				this.onMove = this.onMove.bind(this);
+				this.onClick = this.onClick.bind(this);
+				this.onMouseDown = this.onMouseDown.bind(this);
+				this.onMouseUp = this.onMouseUp.bind(this);
 
-		this.clock = new THREE.Clock();
-		this.cameraPos = new THREE.Vector3(_utilsConfig2['default'].camera.position.x, _utilsConfig2['default'].camera.position.y, _utilsConfig2['default'].camera.position.z);
-		this.plane = null;
-		this.composer = null;
-		this.interactionsPos = new Array();
-		this.interactionsTime = new Array();
-		this.interactionsIndex = 0;
+				this.clock = new THREE.Clock();
+				this.cameraPos = new THREE.Vector3(_utilsConfig2['default'].camera.position.x, _utilsConfig2['default'].camera.position.y, _utilsConfig2['default'].camera.position.z);
+				this.plane = null;
+				this.composer = null;
+				this.interactionsPos = new Array();
+				this.interactionsTime = new Array();
+				this.interactionsIndex = 0;
 
-		for (var i = 0; i < _utilsConfig2['default'].maxInteractions; i++) {
-			this.interactionsPos[i] = new THREE.Vector2(0, 0, 0);
-			this.interactionsTime[i] = 0;
+				for (var i = 0; i < _utilsConfig2['default'].maxInteractions; i++) {
+						this.interactionsPos[i] = new THREE.Vector2(0, 0, 0);
+						this.interactionsTime[i] = 0;
+				}
+
+				this.scene = new THREE.Scene();
+				this.container = _utilsConfig2['default'].canvas.element;
+				this.canvas = document.createElement("canvas");
+
+				this.camera = new THREE.PerspectiveCamera(45, this.ratio, 15, 3000);
+				this.camera.position.x = _utilsConfig2['default'].camera.position.x;
+				this.camera.position.y = _utilsConfig2['default'].camera.position.y;
+				this.camera.position.z = _utilsConfig2['default'].camera.position.z;
+				this.camera.lookAt(_utilsConfig2['default'].camera.target);
+
+				if (_utilsConfig2['default'].axisHelper) {
+						this.axisHelper = new THREE.AxisHelper(5);
+						this.scene.add(this.axisHelper);
+				}
+
+				//// RENDERER
+				this.renderer = new THREE.WebGLRenderer();
+				this.renderer.setClearColor(_utilsConfig2['default'].canvas.color, 1.0);
+				this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+				//// AMBIANT LIGHT
+				this.ambient = new THREE.AmbientLight(_utilsConfig2['default'].lights.ambient.color);
+
+				//// ADD OBJECTS TO SCENE
+				this.scene.add(this.ambient);
+
+				this.createVideo();
+
+				this.gazolineUniforms = {
+						uTime: { type: "f", value: .0 },
+						uResolution: { type: "v2", value: THREE.Vector2(this.canvas.width, this.canvas.height) },
+						uGreyscale: { type: "i", value: _utilsConfig2['default'].greyscale },
+						uTex: { type: 't', value: THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) },
+						// uTex: 				{ type: 't', 	value: this.videoTexture },
+						uInteractionsPos: { type: 'v2v', value: this.interactionsPos },
+						uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
+						uInteractionsIndex: { type: 'i', value: this.interactionsIndex }
+				};
+
+				this.planeGeometry = new THREE.PlaneBufferGeometry(100, 50, 0);
+				this.planeMaterial = new THREE.ShaderMaterial({
+						vertexShader: require('../shaders/water.vertex.glsl'),
+						fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + _utilsConfig2['default'].maxInteractions + require('../shaders/water.fragment.glsl'),
+						uniforms: this.gazolineUniforms
+				});
+				this.plane = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
+				this.scene.add(this.plane);
+
+				//// ADD CANVAS TO DOM
+				this.container.appendChild(this.renderer.domElement);
+
+				this.onResize();
+
+				//// REGIST RENDERER
+				_utilsRaf2['default'].register(this.render);
+				_utilsRaf2['default'].start();
+
+				window.addEventListener('click', this.onClick);
+				window.addEventListener('pointerdown', this.onMouseDown);
+				window.addEventListener('pointerup', this.onMouseUp);
+				window.addEventListener('resize', this.onResize);
+				window.addEventListener('pointermove', this.onMove);
+		},
+
+		onClick: function onClick(event) {},
+
+		onMove: function onMove(event) {
+				if (this.isCapting) {
+						this.addInteractionFromEvent(event);
+				}
+		},
+
+		onMouseDown: function onMouseDown(event) {
+				this.isCapting = true;
+		},
+
+		onMouseUp: function onMouseUp(event) {
+				this.isCapting = false;
+		},
+
+		onResize: function onResize() {
+				this.canvas.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
+				this.canvas.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
+
+				this.renderer.setSize(this.canvas.width, this.canvas.height);
+				this.ratio = window.innerWidth / window.innerHeight;
+
+				this.renderer.domElement.style.transform = 'scale(' + _utilsConfig2['default'].scale + ')';
+				this.renderer.domElement.style.transformOrigin = '0 0';
+
+				this.camera.aspect = this.ratio;
+				this.camera.updateProjectionMatrix();
+
+				this.halfWidth = window.innerWidth * .5;
+				this.halfHeight = window.innerHeight * .5;
+		},
+
+		addInteractionFromEvent: function addInteractionFromEvent(event) {
+				var position = (0, _utilsGetIntersectionMouse2['default'])(event, this.plane, this.camera);
+
+				if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
+						this.removeFirst();
+				}
+
+				this.interactionsPos[this.interactionsIndex] = new THREE.Vector2(position.x, position.y);
+				this.interactionsTime[this.interactionsIndex] = 0;
+				this.interactionsIndex++;
+
+				this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
+				this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+		},
+
+		render: function render() {
+				var delta = this.clock.getDelta();
+				this.gazolineUniforms.uTime.value += delta;
+
+				for (var i = 0; i < this.interactionsIndex; i++) {
+						this.interactionsTime[i] += delta;
+
+						// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
+						if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
+								this.removeFirst();
+						}
+				}
+
+				this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
+
+				this.renderer.render(this.scene, this.camera);
+		},
+
+		removeFirst: function removeFirst() {
+				this.interactionsTime.shift();
+				this.interactionsPos.shift();
+				this.interactionsIndex--;
+
+				this.interactionsPos.push(new THREE.Vector2(0, 0, 0));
+				this.interactionsTime.push(100);
+
+				this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
+				this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+		},
+
+		createVideo: function createVideo() {
+				this.video = document.createElement('video');
+				this.video.src = _utilsConfig2['default'].video.url;
+				this.video.load();
+				this.video.play();
+
+				this.video.style.width = "200px";
+				this.video.style.height = "200px";
+				this.video.style.display = "block";
+				this.video.style.position = "absolute";
+				this.video.style.top = "0";
+				this.video.style.left = "0";
+
+				document.body.appendChild(this.video);
+
+				this.textureVideo = new THREE.VideoTexture(this.video);
+				this.textureVideo.minFilter = THREE.LinearFilter;
+				this.textureVideo.magFilter = THREE.LinearFilter;
+				this.textureVideo.format = THREE.RGBFormat;
 		}
-
-		this.scene = new THREE.Scene();
-		this.container = _utilsConfig2['default'].canvas.element;
-		this.canvas = document.createElement("canvas");
-
-		this.camera = new THREE.PerspectiveCamera(45, this.ratio, 15, 3000);
-		this.camera.position.x = _utilsConfig2['default'].camera.position.x;
-		this.camera.position.y = _utilsConfig2['default'].camera.position.y;
-		this.camera.position.z = _utilsConfig2['default'].camera.position.z;
-		this.camera.lookAt(_utilsConfig2['default'].camera.target);
-
-		if (_utilsConfig2['default'].axisHelper) {
-			this.axisHelper = new THREE.AxisHelper(5);
-			this.scene.add(this.axisHelper);
-		}
-
-		//// RENDERER
-		this.renderer = new THREE.WebGLRenderer();
-		this.renderer.setClearColor(_utilsConfig2['default'].canvas.color, 1.0);
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-		//// AMBIANT LIGHT
-		this.ambient = new THREE.AmbientLight(_utilsConfig2['default'].lights.ambient.color);
-
-		//// ADD OBJECTS TO SCENE
-		this.scene.add(this.ambient);
-
-		this.gazolineUniforms = {
-			uTime: { type: "f", value: .0 },
-			uResolution: { type: "v2", value: THREE.Vector2(this.canvas.width, this.canvas.height) },
-			uGreyscale: { type: "i", value: _utilsConfig2['default'].greyscale },
-			uTex: { type: 't', value: THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) },
-			uInteractionsPos: { type: 'v2v', value: this.interactionsPos },
-			uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
-			uInteractionsIndex: { type: 'i', value: this.interactionsIndex }
-		};
-
-		this.planeGeometry = new THREE.PlaneBufferGeometry(100, 50, 0);
-		this.planeMaterial = new THREE.ShaderMaterial({
-			vertexShader: require('../shaders/water.vertex.glsl'),
-			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + _utilsConfig2['default'].maxInteractions + require('../shaders/water.fragment.glsl'),
-			uniforms: this.gazolineUniforms
-		});
-		this.plane = new THREE.Mesh(this.planeGeometry, this.planeMaterial);
-		this.scene.add(this.plane);
-
-		//// ADD CANVAS TO DOM
-		this.container.appendChild(this.renderer.domElement);
-
-		this.onResize();
-
-		//// REGIST RENDERER
-		_utilsRaf2['default'].register(this.render);
-		_utilsRaf2['default'].start();
-
-		window.addEventListener('click', this.onClick);
-		window.addEventListener('mousedown', this.onMouseDown);
-		window.addEventListener('mouseup', this.onMouseUp);
-		window.addEventListener('resize', this.onResize);
-		window.addEventListener('mousemove', this.onMove);
-	},
-
-	onClick: function onClick(event) {},
-
-	onMove: function onMove(event) {
-		if (this.isCapting) {
-			this.addInteractionFromEvent(event);
-		}
-	},
-
-	onMouseDown: function onMouseDown() {
-		this.isCapting = true;
-	},
-
-	onMouseUp: function onMouseUp() {
-		this.isCapting = false;
-	},
-
-	onResize: function onResize() {
-		this.canvas.width = this.container.offsetWidth;
-		this.canvas.height = this.container.offsetHeight;
-
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
-		this.ratio = window.innerWidth / window.innerHeight;
-
-		this.camera.aspect = this.ratio;
-		this.camera.updateProjectionMatrix();
-
-		this.halfWidth = window.innerWidth * .5;
-		this.halfHeight = window.innerHeight * .5;
-	},
-
-	addInteractionFromEvent: function addInteractionFromEvent() {
-		var position = (0, _utilsGetIntersectionMouse2['default'])(event, this.plane, this.camera);
-
-		if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
-			this.removeFirst();
-		}
-
-		this.interactionsPos[this.interactionsIndex] = new THREE.Vector2(position.x, position.y);
-		this.interactionsTime[this.interactionsIndex] = 0;
-		this.interactionsIndex++;
-
-		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
-		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
-	},
-
-	render: function render() {
-		var delta = this.clock.getDelta();
-		this.gazolineUniforms.uTime.value += delta;
-
-		for (var i = 0; i < this.interactionsIndex; i++) {
-			this.interactionsTime[i] += delta;
-
-			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
-				this.removeFirst();
-			}
-		}
-
-		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
-
-		this.renderer.render(this.scene, this.camera);
-	},
-
-	removeFirst: function removeFirst() {
-		this.interactionsTime.shift();
-		this.interactionsPos.shift();
-		this.interactionsIndex--;
-
-		this.interactionsPos.push(new THREE.Vector2(0, 0, 0));
-		this.interactionsTime.push(100);
-
-		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
-		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
-	}
 
 };
 
@@ -46737,10 +46764,10 @@ window.onload = function () {
 module.exports = "//\n// Description : Array and textureless GLSL 2D/3D/4D simplex \n//               noise functions.\n//      Author : Ian McEwan, Ashima Arts.\n//  Maintainer : stegu\n//     Lastmod : 20110822 (ijm)\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\n//               Distributed under the MIT License. See LICENSE file.\n//               https://github.com/ashima/webgl-noise\n//               https://github.com/stegu/webgl-noise\n// \n\nvec3 mod289(vec3 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 mod289(vec4 x) {\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\n}\n\nvec4 permute(vec4 x) {\n     return mod289(((x*34.0)+1.0)*x);\n}\n\nvec4 taylorInvSqrt(vec4 r)\n{\n  return 1.79284291400159 - 0.85373472095314 * r;\n}\n\nfloat snoise(vec3 v)\n  { \n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\n\n// First corner\n  vec3 i  = floor(v + dot(v, C.yyy) );\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\n\n// Other corners\n  vec3 g = step(x0.yzx, x0.xyz);\n  vec3 l = 1.0 - g;\n  vec3 i1 = min( g.xyz, l.zxy );\n  vec3 i2 = max( g.xyz, l.zxy );\n\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\n  vec3 x1 = x0 - i1 + C.xxx;\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\n\n// Permutations\n  i = mod289(i); \n  vec4 p = permute( permute( permute( \n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\n\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\n  float n_ = 0.142857142857; // 1.0/7.0\n  vec3  ns = n_ * D.wyz - D.xzx;\n\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\n\n  vec4 x_ = floor(j * ns.z);\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\n\n  vec4 x = x_ *ns.x + ns.yyyy;\n  vec4 y = y_ *ns.x + ns.yyyy;\n  vec4 h = 1.0 - abs(x) - abs(y);\n\n  vec4 b0 = vec4( x.xy, y.xy );\n  vec4 b1 = vec4( x.zw, y.zw );\n\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\n  vec4 s0 = floor(b0)*2.0 + 1.0;\n  vec4 s1 = floor(b1)*2.0 + 1.0;\n  vec4 sh = -step(h, vec4(0.0));\n\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\n\n  vec3 p0 = vec3(a0.xy,h.x);\n  vec3 p1 = vec3(a0.zw,h.y);\n  vec3 p2 = vec3(a1.xy,h.z);\n  vec3 p3 = vec3(a1.zw,h.w);\n\n//Normalise gradients\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\n  p0 *= norm.x;\n  p1 *= norm.y;\n  p2 *= norm.z;\n  p3 *= norm.w;\n\n// Mix final noise value\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\n  m = m * m;\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \n                                dot(p2,x2), dot(p3,x3) ) );\n  }\n";
 
 },{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/water.fragment.glsl":[function(require,module,exports){
-module.exports = "\n#define MAX_DIST 5.\n#define MAX_Time 10.\n\nuniform float uTime;\nuniform vec2 uResolution;\nuniform bool uGreyscale;\nuniform sampler2D uTex;\n\nuniform float uInteractionsTime[ MAX_INT ];\nuniform vec2 uInteractionsPos[ MAX_INT ];\nuniform int uInteractionsIndex;\n\nvarying vec2 vUv;\nvarying vec3 vPosition;\n\nvec3 offset = vec3( 0., .1, .2);\nvec3 rgb = vec3(.0, .0, .0);\n\nvoid main() {\n\tvec3 noise \t= vec3(.0, .0, .0);\n\tvec3 rgb \t= vec3(.0, .0, .0);\n\tvec2 diff \t= vec2(.0, .0);\n\tfloat dist  = .0;\n\tfloat influence = .0;\n\tfloat influenceSlope = -.05;\n\tfloat influenceTime = .0;\n\tfloat displacement = .0;\n\tfloat frequency = 2.5;\n\tfloat amplitude = .2;\n\tfloat waveLength = .5;\n\tfloat shift = .0;\n\n\tvec3 sinVal = vec3( .0, .0, .0);\n\n\n\tnoise = vec3(\n\t\tsnoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75\n\t);\n\n\trgb = texture2D(uTex, vUv).rgb * noise;\n\n\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\n\t\tif( i >= uInteractionsIndex ) {\n\t\t\tbreak;\n\t\t}\n\n\t\tdist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );\n\n\t\t// INFLUENCE FROM DIST\n\t\tif( uInteractionsTime[i] < 2. ) {\n\t\t\tinfluence = ( dist * influenceSlope ) + uInteractionsTime[i] * 1.;\n\t\t}\n\n\n\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\n\n\t\tif( influenceTime > .0 ) {\n\n\t\t\tinfluence = influence * influenceTime ;\n\n\t\t\t// influence is gonna act on sombrero function\n\t\t\tif( influence > .0 ) {\n\n\t\t\t\tsinVal = sin( ( dist * waveLength - uInteractionsTime[i] * frequency ) + offset ) * amplitude + shift;\n\n\t\t\t\tsinVal = sinVal * influence;\n\n\t\t\t\trgb = rgb + rgb * sinVal;\n\t\t\t}\n\t\t}\n\n\t\t// SOMBRERO FUNCTION\n\t\t// diff = uInteractionsPos[i].xy - vPosition.xy;\n\t\t// float r = sqrt( pow( ( diff.x ) * frequency, 2.) +  pow( ( diff.y ) * frequency, 2.) );\t\t\n\t\t// displacement = sin( r ) / r;\n\n\n\t}\n\n\t\n\n\tgl_FragColor = vec4( rgb, 1. );\n}\n";
+module.exports = "\r\n#define MAX_DIST 20.\r\n#define MAX_Time 10.\r\n\r\nuniform float uTime;\r\nuniform vec2 uResolution;\r\nuniform bool uGreyscale;\r\nuniform sampler2D uTex;\r\n\r\nuniform float uInteractionsTime[ MAX_INT ];\r\nuniform vec2 uInteractionsPos[ MAX_INT ];\r\nuniform int uInteractionsIndex;\r\n\r\nvarying vec2 vUv;\r\nvarying vec3 vPosition;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 rgb = vec3(.0, .0, .0);\r\n\r\nvoid main() {\r\n\tvec3 noise \t= vec3(.0, .0, .0);\r\n\tvec3 rgb \t= vec3(.0, .0, .0);\r\n\tvec2 diff \t= vec2(.0, .0);\r\n\tfloat dist  = .0;\r\n\tfloat influence = .0;\r\n\tfloat influenceSlope = -.05;\r\n\tfloat influenceTime = .0;\r\n\tfloat displacement = .0;\r\n\tfloat frequency = 2.5;\r\n\tfloat amplitude = .2;\r\n\tfloat waveLength = .5;\r\n\tfloat shift = .0;\r\n\r\n\tvec3 sinVal = vec3( .0, .0, .0);\r\n\r\n\r\n\tnoise = vec3(\r\n\t\tsnoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,\r\n\t\tsnoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,\r\n\t\tsnoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75\r\n\t);\r\n\r\n\trgb = texture2D(uTex, vUv).rgb * noise;\r\n\r\n\r\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t\tif( i >= uInteractionsIndex ) {\r\n\t\t\tbreak;\r\n\t\t}\r\n\r\n\t\tdist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );\r\n\r\n\t\t// INFLUENCE FROM DIST + SPAWNING \r\n\t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST ) {\r\n\t\t\tinfluence = ( dist * influenceSlope ) + uInteractionsTime[i] * .5 + .3;\r\n\t\t}\r\n\r\n\t\t// FADE OUT\r\n\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t// influence is gonna act on simili sombrero function\r\n\t\t\tif( influence > .0 ) {\r\n\r\n\t\t\t\tsinVal = sin( ( dist * waveLength - uInteractionsTime[i] * frequency ) + offset ) * amplitude + shift;\r\n\r\n\t\t\t\tsinVal = sinVal * influence;\r\n\r\n\t\t\t\trgb = rgb + rgb * sinVal;\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\t// SOMBRERO FUNCTION\r\n\t\t// diff = uInteractionsPos[i].xy - vPosition.xy;\r\n\t\t// float r = sqrt( pow( ( diff.x ) * frequency, 2.) +  pow( ( diff.y ) * frequency, 2.) );\t\t\r\n\t\t// displacement = sin( r ) / r;\r\n\r\n\r\n\t}\r\n\r\n\t\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
 
 },{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/shaders/water.vertex.glsl":[function(require,module,exports){
-module.exports = "varying vec2 vUv;\nvarying vec3 vPosition;\n\nvoid main() {\n\tvUv = uv;\n\n\tvPosition = position;\n\t\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n}";
+module.exports = "varying vec2 vUv;\r\nvarying vec3 vPosition;\r\n\r\nvoid main() {\r\n\tvUv = uv;\r\n\r\n\tvPosition = position;\r\n\t\r\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\r\n}";
 
 },{}],"/Users/tommy.cornilleau/Desktop/TEMP/gazoline-post-process/src/scripts/utils/config.js":[function(require,module,exports){
 'use strict';
@@ -46754,11 +46781,11 @@ var THREE = _interopRequireWildcard(_three);
 var config = {
 	canvas: {
 		element: document.getElementById('container'),
-		color: 0x051023
+		color: 0x000000
 	},
 
 	camera: {
-		position: new THREE.Vector3(0, 0, 50),
+		position: new THREE.Vector3(0, 0, 70),
 		target: new THREE.Vector3(0, 0, 0)
 	},
 
@@ -46770,11 +46797,17 @@ var config = {
 		}
 	},
 
+	scale: 1.5,
+
 	greyscale: true,
 
 	textureURL: './assets/medias/test_1.jpg',
 
-	maxInteractions: 200
+	maxInteractions: 200,
+
+	video: {
+		url: './assets/medias/test_video.mp4'
+	}
 };
 
 module.exports = config;
@@ -46789,7 +46822,6 @@ var _three = require("three");
 var THREE = _interopRequireWildcard(_three);
 
 function getIntersectionMouse(event, mesh, camera) {
-
     // On détecte la position de la souris
     var vector = new THREE.Vector3(event.clientX / window.innerWidth * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
     vector.unproject(camera);
