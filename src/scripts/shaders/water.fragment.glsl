@@ -1,5 +1,5 @@
 
-#define MAX_DIST 20.
+#define MAX_DIST 15.
 #define MAX_Time 10.
 
 uniform float uTime;
@@ -23,7 +23,7 @@ void main() {
 	vec2 diff 	= vec2(.0, .0);
 	float dist  = .0;
 	float influence = .0;
-	float influenceSlope = -.05;
+	float influenceSlope = -.08;
 	float influenceTime = .0;
 	float displacement = .0;
 	float frequency = 2.5;
@@ -52,7 +52,7 @@ void main() {
 
 		// INFLUENCE FROM DIST + SPAWNING 
 		if( uInteractionsTime[i] < 2. && dist < MAX_DIST ) {
-			influence = ( dist * influenceSlope ) + uInteractionsTime[i] * .5 + .3;
+			influence = ( dist * influenceSlope ) + uInteractionsTime[i] * .3 + .5;
 		}
 
 		// FADE OUT
@@ -65,10 +65,12 @@ void main() {
 			// influence is gonna act on simili sombrero function
 			if( influence > .0 ) {
 
+				// HERE WE ONLY CALCULATE REAL WAVE
 				sinVal = sin( ( dist * waveLength - uInteractionsTime[i] * frequency ) + offset ) * amplitude + shift;
 
 				sinVal = sinVal * influence;
 
+				// rgb = rgb + rgb * sinVal;
 				rgb = rgb + rgb * sinVal;
 			}
 		}

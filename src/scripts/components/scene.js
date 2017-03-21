@@ -57,20 +57,21 @@ module.exports = {
 		//// ADD OBJECTS TO SCENE
 		this.scene.add( this.ambient );
 
-		this.createVideo();
+		if( config.useVideo ) {
+			this.createVideo();
+		}
 
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uResolution: 		{ type: "v2", 	value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
 			uGreyscale: 		{ type: "i", 	value: config.greyscale },
-			uTex: 				{ type: 't', 	value: THREE.ImageUtils.loadTexture( config.textureURL ) },
-			// uTex: 				{ type: 't', 	value: this.videoTexture },
+			uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : THREE.ImageUtils.loadTexture( config.textureURL ) },
 			uInteractionsPos: 	{ type: 'v2v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
-		this.planeGeometry = new THREE.PlaneBufferGeometry( 100, 50, 0 );
+		this.planeGeometry = new THREE.PlaneBufferGeometry( config.plane.width, config.plane.height, 0 );
 		this.planeMaterial = new THREE.ShaderMaterial( {
 			vertexShader: require('../shaders/water.vertex.glsl'),
 			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT '+ config.maxInteractions + require('../shaders/water.fragment.glsl'),
@@ -100,9 +101,9 @@ module.exports = {
 	},
 
 	onMove: function( event ) {
-		if( this.isCapting ) {
+		// if( this.isCapting ) {
 			this.addInteractionFromEvent( event );
-		}
+		// }
 	},
 
 	onMouseDown: function( event ) {
@@ -120,10 +121,19 @@ module.exports = {
 		this.renderer.setSize(this.canvas.width, this.canvas.height);
 		this.ratio = window.innerWidth / window.innerHeight;
 
+		// http://stackoverflow.com/questions/14614252/how-to-fit-camera-to-object
+		if( config.fit === 'height' ) {
+			this.fov = 2 * Math.atan( config.plane.height / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
+		}
+		else if( config.fit === 'width' ) {
+			this.fov = 2 * Math.atan( ( config.plane.width / this.ratio ) / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
+		}
+
 		this.renderer.domElement.style.transform = 'scale(' + config.scale + ')';
 		this.renderer.domElement.style.transformOrigin = '0 0';
 
 		this.camera.aspect = this.ratio;
+		this.camera.fov = this.fov;
 		this.camera.updateProjectionMatrix();
 
 		this.halfWidth = window.innerWidth * .5;
@@ -160,7 +170,22 @@ module.exports = {
 
 		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
 
+		if( config.useVideo ) {
+			this.updateVideo();
+		}
+
 		this.renderer.render(this.scene, this.camera);
+	},
+
+	updateVideo: function() {
+		if ( this.video.readyState === this.video.HAVE_ENOUGH_DATA ) {
+
+			this.videoImageContext.drawImage( this.video, 0, 0 );
+
+			if ( this.videoTexture ) {
+				this.videoTexture.needsUpdate = true;
+			}
+		}
 	},
 
 	removeFirst: function() {
@@ -181,19 +206,28 @@ module.exports = {
 		this.video.load();
 		this.video.play();
 
-		this.video.style.width = "200px";
-		this.video.style.height = "200px";
-		this.video.style.display = "block";
-		this.video.style.position = "absolute";
-		this.video.style.top = "0";
-		this.video.style.left = "0";
+		this.videoImage = document.createElement( 'canvas' );
+		this.videoImage.width = 1280;
+		this.videoImage.height = 720;
+		
+		this.videoImageContext = this.videoImage.getContext( '2d' );
 
-		document.body.appendChild( this.video );
+		this.videoImageContext.fillStyle = '#000000';
+		this.videoImageContext.fillRect( 0, 0, this.videoImage.width, this.videoImage.height );
 
-		this.textureVideo = new THREE.VideoTexture( this.video );
-		this.textureVideo.minFilter = THREE.LinearFilter;
-		this.textureVideo.magFilter = THREE.LinearFilter;
-		this.textureVideo.format = THREE.RGBFormat;
+		this.videoImage.style.width = "160px";
+		this.videoImage.style.height = "90px";
+		this.videoImage.style.display = "block";
+		this.videoImage.style.position = "absolute";
+		this.videoImage.style.top = "0";
+		this.videoImage.style.left = "0";
+
+		document.body.appendChild( this.videoImage );
+
+		this.videoTexture = new THREE.Texture( this.videoImage );
+		this.videoTexture.minFilter = THREE.LinearFilter;
+		this.videoTexture.magFilter = THREE.LinearFilter;
+		this.videoTexture.format = THREE.RGBFormat;
 	}
 
 };

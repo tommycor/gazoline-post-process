@@ -1,3 +1,4 @@
+
 import * as THREE from "three";
 
 var config = {	
@@ -23,14 +24,22 @@ var config = {
 
 	greyscale: true,
 
+	useVideo: false,
+
 	textureURL: './assets/medias/test_1.jpg',
 
 	maxInteractions: 200,
 
 	video: {
 		url: './assets/medias/test_video.mp4',
+	},
+
+	fit: 'height',
+
+	plane: {
+		width: 100,
+		height: 50
 	}
 }
-
 
 module.exports = config;
