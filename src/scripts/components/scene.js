@@ -24,10 +24,12 @@ module.exports = {
 		this.composer 	= null;
 		this.interactionsPos 	= new Array();
 		this.interactionsTime 	= new Array();
+		this.interactionsPonderation 	= new Array();
 		this.interactionsIndex 	= 0;
 
 		for( let i = 0 ; i < config.maxInteractions ; i++ ) {
 			this.interactionsPos[i]  = new THREE.Vector2( 0, 0, 0 );
+			this.interactionsPonderation[i] = 0;
 			this.interactionsTime[i] = 0;
 		}
 		
@@ -69,6 +71,7 @@ module.exports = {
 			uInteractionsPos: 	{ type: 'v2v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
+			uInteractionsPonderation: { type: 'iv1', value: this.interactionsPonderation },
 		};
 
 		this.planeGeometry = new THREE.PlaneBufferGeometry( config.plane.width, config.plane.height, 0 );
@@ -98,16 +101,16 @@ module.exports = {
 	},
 
 	onClick: function( event ) {
+		this.addInteractionFromEvent( event, 1 );
 	},
 
 	onMove: function( event ) {
-		// if( this.isCapting ) {
-			this.addInteractionFromEvent( event );
-		// }
+		this.addInteractionFromEvent( event, this.isCapting ? 1 : 0 );
 	},
 
 	onMouseDown: function( event ) {
 		this.isCapting = true;
+
 	},
 
 	onMouseUp: function( event ) {
@@ -140,17 +143,19 @@ module.exports = {
 		this.halfHeight = window.innerHeight * .5;
 	},
 
-	addInteractionFromEvent: function( event ) {
+	addInteractionFromEvent: function( event, ponderation ) {
 		let position = getIntersectionMouse( event, this.plane, this.camera );
 
 		if( this.interactionsIndex > config.maxInteractions ) {
-			this.removeFirst();
+			this.removeItem(0);
 		}
 
 		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector2( position.x, position.y );
 		this.interactionsTime[ this.interactionsIndex ] = 0;
+		this.interactionsPonderation[ this.interactionsIndex ] = ponderation != void 0 ? ponderation : 0;
 		this.interactionsIndex++;
 		
+		this.gazolineUniforms.uInteractionsPonderation.value = this.interactionsPonderation;
 		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
 		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
 	},
@@ -163,8 +168,15 @@ module.exports = {
 			this.interactionsTime[i] += delta;
 
 			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
-				this.removeFirst();
+			if( this.interactionsPonderation[i] == 0 ) {
+				if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
+					this.removeItem( i );
+				}
+			}
+			if( this.interactionsPonderation[i] == 1 ) {
+				if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
+					this.removeItem( i );
+				}
 			}
 		}
 
@@ -188,9 +200,10 @@ module.exports = {
 		}
 	},
 
-	removeFirst: function() {
-		this.interactionsTime.shift()
-		this.interactionsPos.shift();
+	removeItem: function( index ) {
+		this.interactionsTime.splice( index, 1)
+		this.interactionsPos.splice( index, 1);
+		this.interactionsPonderation.splice( index, 1);
 		this.interactionsIndex--;
 
 		this.interactionsPos.push( new THREE.Vector2( 0, 0, 0 ) );
@@ -198,6 +211,7 @@ module.exports = {
 
 		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
 		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+		this.gazolineUniforms.uInteractionsPonderation.value = this.interactionsPonderation;
 	},
 
 	createVideo: function() {

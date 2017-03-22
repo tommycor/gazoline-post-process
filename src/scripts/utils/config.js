@@ -24,11 +24,11 @@ var config = {
 
 	greyscale: true,
 
-	useVideo: false,
+	useVideo: true,
 
 	textureURL: './assets/medias/test_1.jpg',
 
-	maxInteractions: 200,
+	maxInteractions: 250,
 
 	video: {
 		url: './assets/medias/test_video.mp4',

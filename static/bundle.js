@@ -46574,10 +46574,12 @@ module.exports = {
 		this.composer = null;
 		this.interactionsPos = new Array();
 		this.interactionsTime = new Array();
+		this.interactionsPonderation = new Array();
 		this.interactionsIndex = 0;
 
 		for (var i = 0; i < _utilsConfig2['default'].maxInteractions; i++) {
 			this.interactionsPos[i] = new THREE.Vector2(0, 0, 0);
+			this.interactionsPonderation[i] = 0;
 			this.interactionsTime[i] = 0;
 		}
 
@@ -46618,7 +46620,8 @@ module.exports = {
 			uTex: { type: 't', value: _utilsConfig2['default'].useVideo ? this.videoTexture : THREE.ImageUtils.loadTexture(_utilsConfig2['default'].textureURL) },
 			uInteractionsPos: { type: 'v2v', value: this.interactionsPos },
 			uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
-			uInteractionsIndex: { type: 'i', value: this.interactionsIndex }
+			uInteractionsIndex: { type: 'i', value: this.interactionsIndex },
+			uInteractionsPonderation: { type: 'iv1', value: this.interactionsPonderation }
 		};
 
 		this.planeGeometry = new THREE.PlaneBufferGeometry(_utilsConfig2['default'].plane.width, _utilsConfig2['default'].plane.height, 0);
@@ -46646,12 +46649,12 @@ module.exports = {
 		window.addEventListener('pointermove', this.onMove);
 	},
 
-	onClick: function onClick(event) {},
+	onClick: function onClick(event) {
+		this.addInteractionFromEvent(event, 1);
+	},
 
 	onMove: function onMove(event) {
-		// if( this.isCapting ) {
-		this.addInteractionFromEvent(event);
-		// }
+		this.addInteractionFromEvent(event, this.isCapting ? 1 : 0);
 	},
 
 	onMouseDown: function onMouseDown(event) {
@@ -46687,17 +46690,19 @@ module.exports = {
 		this.halfHeight = window.innerHeight * .5;
 	},
 
-	addInteractionFromEvent: function addInteractionFromEvent(event) {
+	addInteractionFromEvent: function addInteractionFromEvent(event, ponderation) {
 		var position = (0, _utilsGetIntersectionMouse2['default'])(event, this.plane, this.camera);
 
 		if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
-			this.removeFirst();
+			this.removeItem(0);
 		}
 
 		this.interactionsPos[this.interactionsIndex] = new THREE.Vector2(position.x, position.y);
 		this.interactionsTime[this.interactionsIndex] = 0;
+		this.interactionsPonderation[this.interactionsIndex] = ponderation != void 0 ? ponderation : 0;
 		this.interactionsIndex++;
 
+		this.gazolineUniforms.uInteractionsPonderation.value = this.interactionsPonderation;
 		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
 		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
 	},
@@ -46710,8 +46715,15 @@ module.exports = {
 			this.interactionsTime[i] += delta;
 
 			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
-				this.removeFirst();
+			if (this.interactionsPonderation[i] == 0) {
+				if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
+					this.removeItem(i);
+				}
+			}
+			if (this.interactionsPonderation[i] == 1) {
+				if (this.interactionsTime[i] > 5 && this.interactionsTime[i] < 50) {
+					this.removeItem(i);
+				}
 			}
 		}
 
@@ -46735,9 +46747,10 @@ module.exports = {
 		}
 	},
 
-	removeFirst: function removeFirst() {
-		this.interactionsTime.shift();
-		this.interactionsPos.shift();
+	removeItem: function removeItem(index) {
+		this.interactionsTime.splice(index, 1);
+		this.interactionsPos.splice(index, 1);
+		this.interactionsPonderation.splice(index, 1);
 		this.interactionsIndex--;
 
 		this.interactionsPos.push(new THREE.Vector2(0, 0, 0));
@@ -46745,6 +46758,7 @@ module.exports = {
 
 		this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
 		this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
+		this.gazolineUniforms.uInteractionsPonderation.value = this.interactionsPonderation;
 	},
 
 	createVideo: function createVideo() {
@@ -46797,7 +46811,7 @@ window.onload = function () {
 module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
-module.exports = "\n#define MAX_DIST 15.\n#define MAX_Time 10.\n\nuniform float uTime;\nuniform vec2 uResolution;\nuniform bool uGreyscale;\nuniform sampler2D uTex;\n\nuniform float uInteractionsTime[ MAX_INT ];\nuniform vec2 uInteractionsPos[ MAX_INT ];\nuniform int uInteractionsIndex;\n\nvarying vec2 vUv;\nvarying vec3 vPosition;\n\nvec3 offset = vec3( 0., .1, .2);\nvec3 rgb = vec3(.0, .0, .0);\n\nvoid main() {\n\tvec3 noise \t= vec3(.0, .0, .0);\n\tvec3 rgb \t= vec3(.0, .0, .0);\n\tvec2 diff \t= vec2(.0, .0);\n\tfloat dist  = .0;\n\tfloat influence = .0;\n\tfloat influenceSlope = -.08;\n\tfloat influenceTime = .0;\n\tfloat displacement = .0;\n\tfloat frequency = 2.5;\n\tfloat amplitude = .2;\n\tfloat waveLength = .5;\n\tfloat shift = .0;\n\n\tvec3 sinVal = vec3( .0, .0, .0);\n\n\n\tnoise = vec3(\n\t\tsnoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75\n\t);\n\n\trgb = texture2D(uTex, vUv).rgb * noise;\n\n\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\n\t\tif( i >= uInteractionsIndex ) {\n\t\t\tbreak;\n\t\t}\n\n\t\tdist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );\n\n\t\t// INFLUENCE FROM DIST + SPAWNING \n\t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST ) {\n\t\t\tinfluence = ( dist * influenceSlope ) + uInteractionsTime[i] * .3 + .5;\n\t\t}\n\n\t\t// FADE OUT\n\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\n\n\t\tif( influenceTime > .0 ) {\n\n\t\t\tinfluence = influence * influenceTime ;\n\n\t\t\t// influence is gonna act on simili sombrero function\n\t\t\tif( influence > .0 ) {\n\n\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\n\t\t\t\tsinVal = sin( ( dist * waveLength - uInteractionsTime[i] * frequency ) + offset ) * amplitude + shift;\n\n\t\t\t\tsinVal = sinVal * influence;\n\n\t\t\t\t// rgb = rgb + rgb * sinVal;\n\t\t\t\trgb = rgb + rgb * sinVal;\n\t\t\t}\n\t\t}\n\n\t\t// SOMBRERO FUNCTION\n\t\t// diff = uInteractionsPos[i].xy - vPosition.xy;\n\t\t// float r = sqrt( pow( ( diff.x ) * frequency, 2.) +  pow( ( diff.y ) * frequency, 2.) );\t\t\n\t\t// displacement = sin( r ) / r;\n\n\n\t}\n\n\t\n\n\tgl_FragColor = vec4( rgb, 1. );\n}\n";
+module.exports = "\n#define MAX_DIST 15.\n#define MAX_Time 10.\n\nuniform float uTime;\nuniform vec2 uResolution;\nuniform bool uGreyscale;\nuniform sampler2D uTex;\n\nuniform float uInteractionsTime[ MAX_INT ];\nuniform vec2 uInteractionsPos[ MAX_INT ];\nuniform int uInteractionsPonderation[ MAX_INT ];\nuniform int uInteractionsIndex;\n\nvarying vec2 vUv;\nvarying vec3 vPosition;\n\nvec3 offset = vec3( 0., .1, .2);\nvec3 offsetWave = vec3( 0., .15, .3);\nvec3 noise \t= vec3(.0, .0, .0);\nvec3 rgb \t= vec3(.0, .0, .0);\nvec2 diff \t= vec2(.0, .0);\n\n\nvec3 getWaveValue( vec2 interactionsPos, float interactionsTime ) {\n\tfloat dist  = .0;\n\tfloat influence = .0;\n\tfloat influenceSlope = -.08;\n\tfloat influenceTime = .0;\n\tfloat displacement = .0;\n\tfloat frequency = 2.5;\n\tfloat amplitude = .2;\n\tfloat waveLength = .5;\n\tfloat shift = .0;\n\n\tvec3 sinVal = vec3( .0, .0, .0);\n\n\tdist = distance( vec3( interactionsPos, .0 ), vec3( vPosition.xy , 0.) );\n\n\t// INFLUENCE FROM DIST + SPAWNING \n\tif( interactionsTime < 2. && dist < MAX_DIST ) {\n\t\tinfluence = ( dist * influenceSlope ) + interactionsTime * .7 + .2;\n\t}\n\n\t// FADE OUT\n\tinfluenceTime = ( interactionsTime * -.5 + 1. );\n\n\tif( influenceTime > .0 ) {\n\n\t\tinfluence = influence * influenceTime ;\n\n\t\t// influence is gonna act on simili sombrero function\n\t\tif( influence > .0 ) {\n\n\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\n\t\t\tsinVal = sin( ( dist * waveLength - interactionsTime * frequency ) + offsetWave ) * amplitude + shift;\n\n\t\t\tsinVal = sinVal * influence;\n\n\t\t\t// rgb = rgb + rgb * sinVal;\n\t\t\trgb = rgb + rgb * sinVal;\n\t\t}\n\t}\n\n\treturn rgb;\n}\n\nvec3 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {\n\n\tfloat dist  = .0;\n\tfloat influence = .0;\n\tfloat influenceSlope = -.08;\n\tfloat influenceTime = .0;\n\tfloat displacement = .0;\n\tfloat frequency = 3.;\n\tfloat amplitude = 3.;\n\tfloat waveLength = .3;\n\tfloat shift = .0;\n\n\tvec3 sinVal = vec3( .0, .0, .0);\n\n\tdist = distance( vec3( interactionsPos, .0 ), vec3( vPosition.xy , 0.) );\n\n\t// INFLUENCE FROM DIST + SPAWNING \n\tif( interactionsTime < 4. && dist < MAX_DIST + 15. ) {\n\t\tinfluence = ( dist * influenceSlope ) + interactionsTime * .5 + .0;\n\t}\n\n\t// FADE OUT\n\tinfluenceTime = ( interactionsTime * -.33 + 1. );\n\n\tif( influenceTime > .0 ) {\n\n\t\tinfluence = influence * influenceTime ;\n\n\t\t// influence is gonna act on simili sombrero function\n\t\tif( influence > .0 ) {\n\n\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\n\t\t\tsinVal = sin( ( dist * waveLength - interactionsTime * frequency ) + offsetWave ) * amplitude + shift;\n\n\t\t\tsinVal = sinVal * influence;\n\n\t\t\t// rgb = rgb + rgb * sinVal;\n\t\t\trgb = rgb + rgb * sinVal;\n\t\t}\n\t}\n\n\treturn rgb;\n}\n\n\n\n\nvoid main() {\n\n\tnoise = vec3(\n\t\tsnoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,\n\t\tsnoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75\n\t);\n\n\trgb = texture2D(uTex, vUv).rgb * noise;\n\n\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\n\t\tif( i >= uInteractionsIndex ) {\n\t\t\tbreak;\n\t\t}\n\n\t\tif( uInteractionsPonderation[i] == 0 ) {\n\t\t\trgb = getWaveValue( uInteractionsPos[i], uInteractionsTime[i] );\n\t\t\tcontinue;\n\t\t}\n\t\telse if( uInteractionsPonderation[i] == 1 ) {\n\t\t\trgb = getBigWaveValue( uInteractionsPos[i], uInteractionsTime[i] );\n\t\t}\n\t}\n\n\tgl_FragColor = vec4( rgb, 1. );\n}\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.vertex.glsl":[function(require,module,exports){
 module.exports = "varying vec2 vUv;\r\nvarying vec3 vPosition;\r\n\r\nvoid main() {\r\n\tvUv = uv;\r\n\r\n\tvPosition = position;\r\n\t\r\n\tgl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\r\n}";
@@ -46834,11 +46848,11 @@ var config = {
 
 	greyscale: true,
 
-	useVideo: false,
+	useVideo: true,
 
 	textureURL: './assets/medias/test_1.jpg',
 
-	maxInteractions: 200,
+	maxInteractions: 250,
 
 	video: {
 		url: './assets/medias/test_video.mp4'
@@ -46873,7 +46887,7 @@ function getIntersectionMouse(event, mesh, camera) {
     var intersect = raycaster.intersectObject(mesh);
     // console.log(intersect);
 
-    if (intersect.length >= 1) return {
+    if (intersect.length > 0) return {
         x: intersect[0].point.x,
         y: intersect[0].point.y,
         z: intersect[0].point.z

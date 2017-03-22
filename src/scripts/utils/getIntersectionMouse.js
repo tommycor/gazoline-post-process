@@ -11,7 +11,7 @@ function getIntersectionMouse(event, mesh, camera)
     var intersect = raycaster.intersectObject( mesh );
     // console.log(intersect);
 
-    if(intersect.length >= 1)
+    if(intersect.length > 0)
         return {
     		x: intersect[0].point.x,
     		y: intersect[0].point.y,
