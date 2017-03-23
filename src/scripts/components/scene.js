@@ -74,10 +74,10 @@ module.exports = {
 			uInteractionsPonderation: { type: 'iv1', value: this.interactionsPonderation },
 		};
 
-		this.planeGeometry = new THREE.PlaneBufferGeometry( config.plane.width, config.plane.height, 0 );
+		this.planeGeometry = new THREE.PlaneBufferGeometry( config.plane.width, config.plane.height, config.plane.segments, config.plane.segments );
 		this.planeMaterial = new THREE.ShaderMaterial( {
-			vertexShader: require('../shaders/water.vertex.glsl'),
-			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT '+ config.maxInteractions + require('../shaders/water.fragment.glsl'),
+			vertexShader: '#define MAX_INT '+ config.maxInteractions + require('../shaders/water.vertex.glsl'),
+			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl'),
 			uniforms: this.gazolineUniforms
 		});
 		this.plane = new THREE.Mesh( this.planeGeometry, this.planeMaterial );
