@@ -1,43 +1,4 @@
 
-// #define MAX_DIST 15.
-// #define MAX_Time 10.
-
-// uniform float uTime;
-// uniform vec2 uResolution;
-// uniform bool uGreyscale;
-// uniform sampler2D uTex;
-
-// uniform float uInteractionsTime[ MAX_INT ];
-// uniform vec2 uInteractionsPos[ MAX_INT ];
-// uniform int uInteractionsPonderation[ MAX_INT ];
-// uniform int uInteractionsIndex;
-
-// varying vec2 vUv;
-// varying vec3 vPosition;
-
-// vec3 offset = vec3( 0., .1, .2);
-// vec3 noise 	= vec3(.0, .0, .0);
-// vec3 rgb 	= vec3(.0, .0, .0);
-
-// varying vec3 vSinVal;
-
-
-// void main() {
-
-// 	noise = vec3(
-// 		snoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,
-// 		snoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,
-// 		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75
-// 	);
-
-// 	rgb = texture2D(uTex, vUv).rgb * noise;
-
-// 	rgb = rgb + rgb * vSinVal;
-
-// 	gl_FragColor = vec4( rgb, 1. );
-// }
-
-
 #define MAX_DIST 15.
 #define MAX_Time 10.
 
@@ -120,7 +81,7 @@ vec3 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {
 	dist = distance( vec3( interactionsPos, .0 ), vec3( vPosition.xy , 0.) );
 
 	// INFLUENCE FROM DIST + SPAWNING 
-	if( interactionsTime < 4. && dist < MAX_DIST + 15. ) {
+	if( interactionsTime < 4. && dist < MAX_DIST + 10. ) {
 		influence = ( dist * influenceSlope ) + interactionsTime * .7 + .0;
 	}
 
@@ -135,7 +96,7 @@ vec3 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {
 		if( influence > .0 ) {
 
 			// HERE WE ONLY CALCULATE REAL WAVE
-			sinVal = sin( ( dist * waveLength - interactionsTime * frequency ) + offsetWave ) * amplitude + shift;
+			sinVal = cos( ( dist * waveLength - interactionsTime * frequency ) + offsetWave ) * amplitude + shift;
 
 			sinVal = sinVal * influence;
 		}
@@ -155,9 +116,12 @@ void main() {
 		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75
 	);
 
-	rgb = texture2D(uTex, vUv).rgb * noise;
+	// rgb = texture2D(uTex, vUv).rgb * noise;
 
-	vec3 sinVal = vec3(0., 0., 0.);
+	vec3 sinVal = vec3( .0 );
+	vec3 globalSinVal = vec3( .8 );
+
+	vec2 explosions = vec2( 0. );
 
 
 	for( int i = 0 ; i < MAX_INT ; i++ ) {
@@ -174,8 +138,16 @@ void main() {
 			sinVal = getBigWaveValue( uInteractionsPos[i], uInteractionsTime[i] );
 		}
 
-		rgb = rgb + rgb * sinVal;
+		if( sinVal == vec3( 0 ) ) { continue; }
+
+		globalSinVal = globalSinVal + globalSinVal * sinVal;
+
+		explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sinVal.r;
 	}
+
+	rgb = texture2D(uTex, vUv + explosions * .02 ).rgb * noise;
+
+	rgb = rgb * globalSinVal;
 
 	gl_FragColor = vec4( rgb, 1. );
 }
