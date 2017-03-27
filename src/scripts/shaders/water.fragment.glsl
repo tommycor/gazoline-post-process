@@ -1,6 +1,7 @@
 
 #define MAX_DIST 15.
 #define MAX_Time 10.
+#define PI_2 6.2831853071
 
 uniform float uTime;
 uniform vec2 uResolution;
@@ -22,7 +23,7 @@ vec3 rgb 	= vec3(.0, .0, .0);
 vec2 diff 	= vec2(.0, .0);
 
 
-vec3 getWaveValue( vec2 interactionsPos, float interactionsTime ) {
+vec4 getWaveValue( vec2 interactionsPos, float interactionsTime ) {
 	float dist  = .0;
 	float influence = .0;
 	float influenceSlope = -.08;
@@ -61,10 +62,10 @@ vec3 getWaveValue( vec2 interactionsPos, float interactionsTime ) {
 		}
 	}
 
-	return sinVal;
+	return vec4( sinVal, dist );
 }
 
-vec3 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {
+vec4 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {
 
 	float dist  = .0;
 	float influence = .0;
@@ -76,7 +77,7 @@ vec3 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {
 	float waveLength = .2;
 	float shift = .0;
 
-	vec3 sinVal = vec3( .0, .0, .0);
+	vec3 sinVal = vec3( .0 );
 
 	dist = distance( vec3( interactionsPos, .0 ), vec3( vPosition.xy , 0.) );
 
@@ -102,7 +103,7 @@ vec3 getBigWaveValue( vec2 interactionsPos, float interactionsTime ) {
 		}
 	}
 
-	return sinVal;
+	return vec4( sinVal, dist );
 }
 
 
@@ -118,7 +119,7 @@ void main() {
 
 	// rgb = texture2D(uTex, vUv).rgb * noise;
 
-	vec3 sinVal = vec3( .0 );
+	vec4 sinVal = vec4( .0 );
 	vec3 globalSinVal = vec3( .8 );
 
 	vec2 explosions = vec2( 0. );
@@ -129,7 +130,7 @@ void main() {
 			break;
 		}
 
-		sinVal = vec3(0., 0., 0.);
+		sinVal = vec4( 0. );
 
 		if( uInteractionsPonderation[i] == 0 ) {
 			sinVal = getWaveValue( uInteractionsPos[i], uInteractionsTime[i] );
@@ -138,11 +139,12 @@ void main() {
 			sinVal = getBigWaveValue( uInteractionsPos[i], uInteractionsTime[i] );
 		}
 
-		if( sinVal == vec3( 0 ) ) { continue; }
+		if( sinVal.rgb == vec3( 0 ) ) { continue; }
 
-		globalSinVal = globalSinVal + globalSinVal * sinVal;
+		globalSinVal = globalSinVal + globalSinVal * sinVal.rgb;
 
-		explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sinVal.r;
+		// explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal.r * PI_2 ) * .5;
+		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.a * sin( sinVal.r * PI_2 ) * .5;
 	}
 
 	rgb = texture2D(uTex, vUv + explosions * .02 ).rgb * noise;

@@ -24,7 +24,7 @@ var config = {
 
 	greyscale: true,
 
-	useVideo: true,
+	useVideo: false,
 
 	textureURL: './assets/medias/test_1.jpg',
 
