@@ -144,10 +144,10 @@ void main() {
 		globalSinVal = globalSinVal + globalSinVal * sinVal.rgb;
 
 		// explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal.r * PI_2 ) * .5;
-		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.a * sin( sinVal.r * PI_2 ) * .5;
+		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.a * sin( sinVal.g * PI_2 );
 	}
 
-	rgb = texture2D(uTex, vUv + explosions * .02 ).rgb * noise;
+	rgb = texture2D(uTex, vUv + explosions * .004 ).rgb * noise;
 
 	rgb = rgb * globalSinVal;
 
