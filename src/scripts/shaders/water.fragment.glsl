@@ -1,7 +1,20 @@
 
-#define MAX_DIST 15.
+#define MAX_DIST_1 15.
+#define MAX_DIST_2 25.
 #define MAX_Time 10.
 #define PI_2 6.2831853071
+
+#define s_influenceSlope -.08
+#define s_frequency 2.5
+#define s_amplitude .2
+#define s_waveLength .5
+#define s_shift .0
+
+#define b_influenceSlope -.08
+#define b_frequency 4.
+#define b_amplitude 3.5
+#define b_waveLength .2
+#define b_shift .0
 
 uniform float uTime;
 uniform vec2 uResolution;
@@ -23,78 +36,6 @@ vec3 rgb 	= vec3(.0, .0, .0);
 vec2 diff 	= vec2(.0, .0);
 
 
-vec2 getWaveValue( vec2 interactionsPos, float interactionsTime, int ponderation ) {
-	
-	float sinVal = .0;
-
-	float dist  = .0;
-	float influence = .0;
-	float influenceTime = .0;
-	float influenceSlope = .0;
-	float frequency = .0;
-	float amplitude = .0;
-	float waveLength = .0;
-	float shift = .0;
-
-	if( ponderation == 0 ) {
-
-		influenceSlope = -.08;
-		frequency = 2.5;
-		amplitude = .2;
-		waveLength = .5;
-		shift = .0;
-
-	}
-	else if( ponderation == 1 ) {
-
-		influenceSlope = -.08;
-		frequency = 4.;
-		amplitude = 3.5;
-		waveLength = .2;
-		shift = .0;
-	}
-
-
-	dist = distance( vec3( interactionsPos, .0 ), vec3( vPosition.xy , 0.) );
-
-	if( ponderation == 0 ) {
-		// INFLUENCE FROM DIST + SPAWNING 
-		if( interactionsTime < 2. && dist < MAX_DIST ) {
-			influence = ( dist * influenceSlope ) + interactionsTime * .7 + .2;
-		}
-
-		// FADE OUT
-		influenceTime = ( interactionsTime * -.5 + 1. );
-	}
-	else if( ponderation == 1 ) {
-		// INFLUENCE FROM DIST + SPAWNING 
-		if( interactionsTime < 4. && dist < MAX_DIST + 10. ) {
-			influence = ( dist * influenceSlope ) + interactionsTime * .7 + .0;
-		}
-
-		// FADE OUT
-		influenceTime = ( interactionsTime * -.33 + 1. );
-	}
-
-
-	if( influenceTime > .0 ) {
-
-		influence = influence * influenceTime ;
-
-		// influence is gonna act on simili sombrero function
-		if( influence > .0 ) {
-
-			// HERE WE ONLY CALCULATE REAL WAVE
-			sinVal = sin( ( dist * waveLength - interactionsTime * frequency ) ) * amplitude + shift;
-
-			sinVal = sinVal * influence;
-		}
-	}
-
-	return vec2( sinVal, dist );		
-}
-
-
 void main() {
 
 	noise = vec3(
@@ -105,24 +46,81 @@ void main() {
 
 	// rgb = texture2D(uTex, vUv).rgb * noise;
 
-	vec2 sinVal = vec2( .0 );
 	float globalSinVal = .8;
-
 	vec2 explosions = vec2( 0. );
+
+	float sinVal = .0;
+	float dist  = .0;
+	float influence = .0;
+	float influenceTime = .0;
 
 	for( int i = 0 ; i < MAX_INT ; i++ ) {
 		if( i >= uInteractionsIndex ) {
 			break;
 		}
 
-		sinVal = getWaveValue( uInteractionsPos[i], uInteractionsTime[i], uInteractionsPonderation[i] );
+		sinVal = .0;
+		dist = .0;
+		influence = .0;
+		influenceTime = .0;
 
-		if( sinVal.r == .0 ) { continue; }
+		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
 
-		globalSinVal = globalSinVal + globalSinVal * sinVal.r;
+		if( uInteractionsPonderation[i] == 0 ) {
+			// INFLUENCE FROM DIST + SPAWNING 
+			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
+				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
+			}
 
-		// explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal.r * PI_2 ) * .5;
-		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.g * sin( sinVal.r * PI_2 );
+			// FADE OUT
+			influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
+
+			if( influenceTime > .0 ) {
+
+				influence = influence * influenceTime ;
+
+				// influence is gonna act on simili sombrero function
+				if( influence > .0 ) {
+
+					// HERE WE ONLY CALCULATE REAL WAVE
+					sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) ) * s_amplitude + s_shift;
+
+					sinVal = sinVal * influence;
+				}
+			}
+		}
+
+
+		else if( uInteractionsPonderation[i] == 1 ) {
+			// INFLUENCE FROM DIST + SPAWNING 
+			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
+				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .7 + .0;
+			}
+
+			// FADE OUT
+			influenceTime = ( uInteractionsTime[i] * -.33 + 1. );
+			
+			if( influenceTime > .0 ) {
+
+				influence = influence * influenceTime ;
+
+				// influence is gonna act on simili sombrero function
+				if( influence > .0 ) {
+
+					// HERE WE ONLY CALCULATE REAL WAVE
+					sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) ) * b_amplitude + b_shift;
+
+					sinVal = sinVal * influence;
+				}
+			}
+		}
+
+		if( sinVal == .0 ) { continue; }
+
+		globalSinVal = globalSinVal + globalSinVal * sinVal;
+
+		explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal * PI_2 ) * .5;
+		// explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.g * sin( sinVal.r * PI_2 );
 	}
 
 	rgb = texture2D(uTex, vUv + explosions * .004 ).rgb * noise;

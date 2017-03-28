@@ -30,7 +30,7 @@ module.exports = {
 		for( let i = 0 ; i < config.maxInteractions ; i++ ) {
 			this.interactionsPos[i]  = new THREE.Vector2( 0, 0, 0 );
 			this.interactionsPonderation[i] = 0;
-			this.interactionsTime[i] = 0;
+			this.interactionsTime[i] = 100;
 		}
 		
 		this.scene 	   	= new THREE.Scene();
@@ -109,12 +109,11 @@ module.exports = {
 	},
 
 	onMouseDown: function( event ) {
-		this.isCapting = true;
-
+		// this.isCapting = true;
 	},
 
 	onMouseUp: function( event ) {
-		this.isCapting = false;
+		// this.isCapting = false;
 	},
 
 	onResize: function() {
