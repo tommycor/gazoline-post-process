@@ -39,7 +39,7 @@ var config = {
 	plane: {
 		width: 100,
 		height: 50,
-		segments: 20
+		segments: 2
 	}
 }
 
