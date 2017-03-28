@@ -23,9 +23,9 @@ vec3 rgb 	= vec3(.0, .0, .0);
 vec2 diff 	= vec2(.0, .0);
 
 
-vec4 getWaveValue( vec2 interactionsPos, float interactionsTime, int ponderation ) {
+vec2 getWaveValue( vec2 interactionsPos, float interactionsTime, int ponderation ) {
 	
-	vec3 sinVal = vec3( .0, .0, .0);
+	float sinVal = .0;
 
 	float dist  = .0;
 	float influence = .0;
@@ -85,13 +85,13 @@ vec4 getWaveValue( vec2 interactionsPos, float interactionsTime, int ponderation
 		if( influence > .0 ) {
 
 			// HERE WE ONLY CALCULATE REAL WAVE
-			sinVal = sin( ( dist * waveLength - interactionsTime * frequency ) + offsetWave ) * amplitude + shift;
+			sinVal = sin( ( dist * waveLength - interactionsTime * frequency ) ) * amplitude + shift;
 
 			sinVal = sinVal * influence;
 		}
 	}
 
-	return vec4( sinVal, dist );		
+	return vec2( sinVal, dist );		
 }
 
 
@@ -105,8 +105,8 @@ void main() {
 
 	// rgb = texture2D(uTex, vUv).rgb * noise;
 
-	vec4 sinVal = vec4( .0 );
-	vec3 globalSinVal = vec3( .8 );
+	vec2 sinVal = vec2( .0 );
+	float globalSinVal = .8;
 
 	vec2 explosions = vec2( 0. );
 
@@ -117,12 +117,12 @@ void main() {
 
 		sinVal = getWaveValue( uInteractionsPos[i], uInteractionsTime[i], uInteractionsPonderation[i] );
 
-		if( sinVal.rgb == vec3( 0 ) ) { continue; }
+		if( sinVal.r == .0 ) { continue; }
 
-		globalSinVal = globalSinVal + globalSinVal * sinVal.rgb;
+		globalSinVal = globalSinVal + globalSinVal * sinVal.r;
 
 		// explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal.r * PI_2 ) * .5;
-		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.a * sin( sinVal.g * PI_2 );
+		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.g * sin( sinVal.r * PI_2 );
 	}
 
 	rgb = texture2D(uTex, vUv + explosions * .004 ).rgb * noise;
