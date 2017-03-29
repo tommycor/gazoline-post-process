@@ -71,7 +71,7 @@ module.exports = {
 			uInteractionsPos: 	{ type: 'v2v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
-			uInteractionsPonderation: { type: 'iv1', value: this.interactionsPonderation },
+			uInteractionsPonderation: { type: 'fv1', value: this.interactionsPonderation },
 		};
 
 		this.planeGeometry = new THREE.PlaneBufferGeometry( config.plane.width, config.plane.height, config.plane.segments, config.plane.segments );
@@ -109,11 +109,11 @@ module.exports = {
 	},
 
 	onMouseDown: function( event ) {
-		// this.isCapting = true;
+		this.isCapting = true;
 	},
 
 	onMouseUp: function( event ) {
-		// this.isCapting = false;
+		this.isCapting = false;
 	},
 
 	onResize: function() {

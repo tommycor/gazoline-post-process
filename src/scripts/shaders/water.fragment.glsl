@@ -24,14 +24,14 @@ uniform sampler2D uTex;
 
 uniform float uInteractionsTime[ MAX_INT ];
 uniform vec2 uInteractionsPos[ MAX_INT ];
-uniform int uInteractionsPonderation[ MAX_INT ];
+uniform float uInteractionsPonderation[ MAX_INT ];
 uniform int uInteractionsIndex;
 
 varying vec2 vUv;
 varying vec3 vPosition;
 
 vec3 offset = vec3( 0., .1, .2);
-vec3 offsetWave = vec3( 0., .15, .3);
+vec3 offsetWave = vec3( .3, .15, .0);
 vec3 noise 	= vec3(.0, .0, .0);
 vec3 rgb 	= vec3(.0, .0, .0);
 vec2 diff 	= vec2(.0, .0);
@@ -45,12 +45,10 @@ void main() {
 		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75
 	);
 
-	// rgb = texture2D(uTex, vUv).rgb * noise;
-
-	float globalSinVal = .8;
+	vec3 globalSinVal = vec3( .8 );
 	vec2 explosions = vec2( 0. );
 
-	float sinVal = .0;
+	vec3 sinVal = vec3( .0 );
 	float dist  = .0;
 	float influence = .0;
 	float influenceTime = .0;
@@ -60,14 +58,14 @@ void main() {
 			break;
 		}
 
-		sinVal = .0;
+		sinVal = vec3( .0 );
 		dist = .0;
 		influence = .0;
 		influenceTime = .0;
 
 		dist = distance( uInteractionsPos[i], vPosition.xy );
 
-		if( uInteractionsPonderation[i] == 0 ) {
+		if( uInteractionsPonderation[i] == 0. ) {
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
 				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
@@ -84,7 +82,7 @@ void main() {
 				if( influence > .0 ) {
 
 					// HERE WE ONLY CALCULATE REAL WAVE
-					sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) ) * s_amplitude + s_shift;
+					sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;
 
 					sinVal = sinVal * influence;
 				}
@@ -92,7 +90,7 @@ void main() {
 		}
 
 
-		else if( uInteractionsPonderation[i] == 1 ) {
+		else if( uInteractionsPonderation[i] == 1. ) {
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
 				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .7 + .0;
@@ -109,23 +107,21 @@ void main() {
 				if( influence > .0 ) {
 
 					// HERE WE ONLY CALCULATE REAL WAVE
-					sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) ) * b_amplitude + b_shift;
+					sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;
 
 					sinVal = sinVal * influence;
 				}
 			}
 		}
 
-		if( sinVal == .0 ) { continue; }
+		if( sinVal == vec3( .0 ) ) { continue; }
 
 		globalSinVal = globalSinVal + globalSinVal * sinVal;
 
-		// explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal * PI + PI );
-		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / dist * sin( sinVal * PI + PI );
+		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / dist * sin( sinVal.g * PI + PI );
 	}
 
 	rgb = texture2D(uTex, vUv + explosions * .004 ).rgb * noise;
-	// rgb = texture2D(uTex, vUv ).rgb * noise;
 
 	rgb = rgb * globalSinVal;
 
