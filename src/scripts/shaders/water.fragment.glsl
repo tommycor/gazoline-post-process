@@ -2,6 +2,7 @@
 #define MAX_DIST_1 15.
 #define MAX_DIST_2 25.
 #define MAX_Time 10.
+#define PI 3.1415926535
 #define PI_2 6.2831853071
 
 #define s_influenceSlope -.08
@@ -119,7 +120,7 @@ void main() {
 
 		globalSinVal = globalSinVal + globalSinVal * sinVal;
 
-		explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal * PI_2 ) * .5;
+		explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal * PI + PI ) * .5;
 		// explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.g * sin( sinVal.r * PI_2 );
 	}
 

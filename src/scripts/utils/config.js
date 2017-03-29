@@ -26,7 +26,7 @@ var config = {
 
 	useVideo: false,
 
-	textureURL: './assets/medias/test_1.jpg',
+	textureURL: './assets/medias/test_2.jpg',
 
 	maxInteractions: 250,
 
