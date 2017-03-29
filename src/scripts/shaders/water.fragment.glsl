@@ -65,7 +65,7 @@ void main() {
 		influence = .0;
 		influenceTime = .0;
 
-		dist = distance( vec3( uInteractionsPos[i], .0 ), vec3( vPosition.xy , 0.) );
+		dist = distance( uInteractionsPos[i], vPosition.xy );
 
 		if( uInteractionsPonderation[i] == 0 ) {
 			// INFLUENCE FROM DIST + SPAWNING 
@@ -120,8 +120,8 @@ void main() {
 
 		globalSinVal = globalSinVal + globalSinVal * sinVal;
 
-		explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal * PI + PI ) * .5;
-		// explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / sinVal.g * sin( sinVal.r * PI_2 );
+		// explosions = explosions + normalize( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) * sin( sinVal * PI + PI );
+		explosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / dist * sin( sinVal * PI + PI );
 	}
 
 	rgb = texture2D(uTex, vUv + explosions * .004 ).rgb * noise;
