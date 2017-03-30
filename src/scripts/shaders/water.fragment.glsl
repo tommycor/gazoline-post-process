@@ -23,7 +23,7 @@ uniform bool uGreyscale;
 uniform sampler2D uTex;
 
 uniform float uInteractionsTime[ MAX_INT ];
-uniform vec2 uInteractionsPos[ MAX_INT ];
+uniform vec3 uInteractionsPos[ MAX_INT ];
 uniform float uInteractionsPonderation[ MAX_INT ];
 uniform int uInteractionsIndex;
 
@@ -63,9 +63,9 @@ void main() {
 		influence = .0;
 		influenceTime = .0;
 
-		dist = distance( uInteractionsPos[i], vPosition.xy );
+		dist = distance( uInteractionsPos[i].xy, vPosition.xy );
 
-		if( uInteractionsPonderation[i] == 0. ) {
+		if( uInteractionsPos[i].z == 0. ) {
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
 				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
@@ -90,7 +90,7 @@ void main() {
 		}
 
 
-		else if( uInteractionsPonderation[i] == 1. ) {
+		else if( uInteractionsPos[i].z == 1. ) {
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
 				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .7 + .0;
