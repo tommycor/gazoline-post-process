@@ -52,6 +52,7 @@ void main() {
 	float dist  = .0;
 	float influence = .0;
 	float influenceTime = .0;
+	float vitesse = .0;
 
 	for( int i = 0 ; i < MAX_INT ; i++ ) {
 		if( i >= uInteractionsIndex ) {
@@ -62,54 +63,66 @@ void main() {
 		dist = .0;
 		influence = .0;
 		influenceTime = .0;
+		vitesse = 1.;
 
 		dist = distance( uInteractionsPos[i].xy, vPosition.xy );
 
 		if( uInteractionsPos[i].z == 0. ) {
+
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
 				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
-			}
 
-			// FADE OUT
-			influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
+				if( influence > 1. ) { 
+					influence = 1.;
+				}
 
-			if( influenceTime > .0 ) {
+				// FADE OUT
+				influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
 
-				influence = influence * influenceTime ;
+				if( influenceTime > .0 ) {
 
-				// influence is gonna act on simili sombrero function
-				if( influence > .0 ) {
+					influence = influence * influenceTime ;
 
-					// HERE WE ONLY CALCULATE REAL WAVE
-					sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;
+					// influence is gonna act on simili sombrero function
+					if( influence > .0 ) {
 
-					sinVal = sinVal * influence;
+						// HERE WE ONLY CALCULATE REAL WAVE
+						sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;
+
+						sinVal = sinVal * influence;
+					}
 				}
 			}
 		}
 
 
 		else if( uInteractionsPos[i].z == 1. ) {
+
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
-				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .7 + .0;
-			}
+				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;
 
-			// FADE OUT
-			influenceTime = ( uInteractionsTime[i] * -.33 + 1. );
-			
-			if( influenceTime > .0 ) {
+				if( influence > 1. ) { 
+					influence = 1.;
+				}
 
-				influence = influence * influenceTime ;
+				// FADE OUT
+				influenceTime = ( uInteractionsTime[i] * -.3 + 1. );
+				// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );
+				
+				if( influenceTime > .0 ) {
 
-				// influence is gonna act on simili sombrero function
-				if( influence > .0 ) {
+					influence = influence * influenceTime ;
 
-					// HERE WE ONLY CALCULATE REAL WAVE
-					sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;
+					// influence is gonna act on simili sombrero function
+					if( influence > .0 ) {
 
-					sinVal = sinVal * influence;
+						// HERE WE ONLY CALCULATE REAL WAVE
+						sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;
+
+						sinVal = sinVal * influence;
+					}
 				}
 			}
 		}

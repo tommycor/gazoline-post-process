@@ -163,7 +163,7 @@ module.exports = {
 
 			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
 			if( this.interactionsPos[i].z == 0 ) {
-				if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
+				if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
 					this.removeItem( i );
 				}
 			}
