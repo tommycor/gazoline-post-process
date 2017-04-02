@@ -9,15 +9,16 @@
 #define s_frequency 2.5
 #define s_amplitude .2
 #define s_waveLength .5
-#define s_shift .0
+#define s_shift .08
 
 #define b_influenceSlope -.08
 #define b_frequency 4.
-#define b_amplitude 3.5
+#define b_amplitude 4.
 #define b_waveLength .2
 #define b_shift .0
 
 uniform float uTime;
+uniform float uNoiseInfluence;
 uniform vec2 uResolution;
 uniform bool uGreyscale;
 uniform sampler2D uTex;
@@ -31,7 +32,7 @@ varying vec2 vUv;
 varying vec3 vPosition;
 
 vec3 offset = vec3( 0., .1, .2);
-vec3 offsetWave = vec3( .3, .15, .0);
+vec3 offsetWave = vec3( .4, .2, .0);
 vec3 noise 	= vec3(.0, .0, .0);
 vec3 rgb 	= vec3(.0, .0, .0);
 vec2 diff 	= vec2(.0, .0);
@@ -40,9 +41,9 @@ vec2 diff 	= vec2(.0, .0);
 void main() {
 
 	noise = vec3(
-		snoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 + .75,
-		snoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 + .75,
-		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 + .75
+		snoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,
+		snoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,
+		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.
 	);
 
 	vec3 globalSinVal = vec3( .8 );
@@ -65,12 +66,13 @@ void main() {
 		influenceTime = .0;
 		vitesse = 1.;
 
-		dist = distance( uInteractionsPos[i].xy, vPosition.xy );
 
-		if( uInteractionsPos[i].z == 0. ) {
+		if( uInteractionsPos[i].z != 100. ) {
+			dist = distance( uInteractionsPos[i].xy, vPosition.xy ) / uInteractionsPos[i].z;
 
 			// INFLUENCE FROM DIST + SPAWNING 
-			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
+			// if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {
+			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {
 				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
 
 				if( influence > 1. ) { 
@@ -97,7 +99,8 @@ void main() {
 		}
 
 
-		else if( uInteractionsPos[i].z == 1. ) {
+		else if( uInteractionsPos[i].z == 100. ) {
+			dist = distance( uInteractionsPos[i].xy, vPosition.xy );
 
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {

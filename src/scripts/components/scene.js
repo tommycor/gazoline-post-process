@@ -63,6 +63,7 @@ module.exports = {
 
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
+			uNoiseInfluence:	{ type: "f", 	value: .0 },
 			uResolution: 		{ type: "v2", 	value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
 			uGreyscale: 		{ type: "i", 	value: config.greyscale },
 			uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : THREE.ImageUtils.loadTexture( config.textureURL ) },
@@ -98,11 +99,11 @@ module.exports = {
 	},
 
 	onClick: function( event ) {
-		this.addInteractionFromEvent( event, 1 );
+		this.addInteractionFromEvent( event, 100 );
 	},
 
 	onMove: function( event ) {
-		this.addInteractionFromEvent( event, this.isCapting ? 1 : 0 );
+		this.addInteractionFromEvent( event, this.isCapting ? 100 : 1 );
 	},
 
 	onMouseDown: function( event ) {
@@ -146,7 +147,22 @@ module.exports = {
 			this.removeItem(0);
 		}
 
-		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector3( position.x, position.y, ponderation != void 0 ? ponderation : 0 );
+		if( ponderation != 100 ){
+			if( this.interactionsIndex > 0 ) {
+				let delta = new THREE.Vector2( position.x, position.y ).distanceTo( new THREE.Vector2( this.interactionsPos[ this.interactionsIndex - 1 ].x, this.interactionsPos[ this.interactionsIndex - 1 ].y ) );
+				ponderation = 1 - delta *.5;
+				
+				if( ponderation < .2 ) {
+					ponderation = .2;
+				}
+			}
+			else {
+				ponderation = 1;
+			}
+		}
+
+
+		this.interactionsPos[ this.interactionsIndex ] = new THREE.Vector3( position.x, position.y, ponderation);
 		this.interactionsTime[ this.interactionsIndex ] = 0;
 		this.interactionsIndex++;
 		
@@ -162,17 +178,20 @@ module.exports = {
 			this.interactionsTime[i] += delta;
 
 			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if( this.interactionsPos[i].z == 0 ) {
-				if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
+			if( this.interactionsPos[i].z != 100 ) {
+				if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
 					this.removeItem( i );
 				}
 			}
-			if( this.interactionsPos[i].z == 1 ) {
+			if( this.interactionsPos[i].z == 100 ) {
 				if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
 					this.removeItem( i );
 				}
 			}
 		}
+
+
+		this.gazolineUniforms.uNoiseInfluence.value = this.interactionsIndex / 250;
 
 		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
 
