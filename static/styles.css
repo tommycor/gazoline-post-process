@@ -527,6 +527,17 @@ strong {
   font-weight: 400;
   font-style: italic;
 }
+.c-text-overlay {
+  font-size: 40px;
+  font-size: 2.5rem;
+  font-weight: bold;
+}
+.c-text-overlay--white {
+  color: #fff;
+}
+.c-text-overlay--black {
+  color: #000;
+}
 .o-box,
 .o-box--16by9,
 .o-box--1by1,

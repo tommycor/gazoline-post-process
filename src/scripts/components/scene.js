@@ -152,8 +152,8 @@ module.exports = {
 				let delta = new THREE.Vector2( position.x, position.y ).distanceTo( new THREE.Vector2( this.interactionsPos[ this.interactionsIndex - 1 ].x, this.interactionsPos[ this.interactionsIndex - 1 ].y ) );
 				ponderation = 1 - delta *.5;
 				
-				if( ponderation < .2 ) {
-					ponderation = .2;
+				if( ponderation < config.minPonderation ) {
+					ponderation = config.minPonderation;
 				}
 			}
 			else {

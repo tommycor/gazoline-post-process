@@ -40,7 +40,9 @@ var config = {
 		width: 100,
 		height: 50,
 		segments: 2
-	}
+	},
+
+	minPonderation: .5
 }
 
 module.exports = config;

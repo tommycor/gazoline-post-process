@@ -46,7 +46,7 @@ void main() {
 		snoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.
 	);
 
-	vec3 globalSinVal = vec3( .8 );
+	vec3 globalSinVal = vec3( 1. );
 	vec2 explosions = vec2( 0. );
 
 	vec3 sinVal = vec3( .0 );
