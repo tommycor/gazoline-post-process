@@ -1,7 +1,6 @@
 import * as THREE from "three";
 
-function getIntersectionMouse(event, mesh, camera)
-{
+function getIntersectionMouse(event, mesh, camera) {
     // On détecte la position de la souris
     var vector = new THREE.Vector3( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1, 0.5 );
     vector.unproject(camera);

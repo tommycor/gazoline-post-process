@@ -15,7 +15,7 @@
 #define b_frequency 4.
 #define b_amplitude 4.
 #define b_waveLength .2
-#define b_shift .0
+#define b_shift 1.
 
 uniform float uTime;
 uniform float uNoiseInfluence;

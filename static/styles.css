@@ -531,6 +531,7 @@ strong {
   font-size: 40px;
   font-size: 2.5rem;
   font-weight: bold;
+  display: none;
 }
 .c-text-overlay--white {
   color: #fff;

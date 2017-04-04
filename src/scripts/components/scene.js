@@ -95,7 +95,7 @@ module.exports = {
 		window.addEventListener( 'pointerdown', this.onMouseDown );
 		window.addEventListener( 'pointerup', this.onMouseUp );
 		window.addEventListener( 'resize', this.onResize );
-		window.addEventListener( 'pointermove', this.onMove );
+		window.addEventListener( 'mousemove', this.onMove );
 	},
 
 	onClick: function( event ) {
