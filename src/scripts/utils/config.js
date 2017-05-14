@@ -1,15 +1,12 @@
 
-import * as THREE from "three";
+import Vector2 from './Vector2';
+import Vector3 from './Vector3';
+import Vector4 from './Vector4';
 
 var config = {	
 	canvas: {
 		element : document.getElementById('container'),
 		color : 0x000000
-	},
-		
-	camera: {
-		position : new THREE.Vector3(0, 0, 70),
-		target : new THREE.Vector3(0, 0, 0)
 	},
 
 	axisHelper: false,

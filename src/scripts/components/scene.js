@@ -1,12 +1,12 @@
-import * as THREE from "three";
+import Vector2 from './Vector2';
+import Vector3 from './Vector3';
+import Vector4 from './Vector4';
 
 import config 				from '../utils/config';
 import raf 					from '../utils/raf';
 import mapper 				from '../utils/mapper';
 import getIntersectionMouse from '../utils/getIntersectionMouse';
 import GlslCanvas			from 'glslCanvas';
-
-// THREE.EffectComposer = require('three-effectcomposer')(THREE);
 
 module.exports = {
 
@@ -18,8 +18,6 @@ module.exports = {
 		this.onMouseDown= this.onMouseDown.bind(this);
 		this.onMouseUp	= this.onMouseUp.bind(this);
 
-		this.clock   	= new THREE.Clock();
-		this.cameraPos	= new THREE.Vector3( config.camera.position.x, config.camera.position.y, config.camera.position.z );
 		this.plane   	= null;
 		this.composer 	= null;
 		this.interactionsPos 	= new Array();
@@ -31,31 +29,11 @@ module.exports = {
 			this.interactionsTime[i] = 100;
 		}
 		
-		this.scene 	   	= new THREE.Scene();
+		this.stage 	   	= new PIXI.Container();
 		this.container 	= config.canvas.element;
-		this.canvas 	= document.createElement("canvas");
-
-		this.camera 		   = new THREE.PerspectiveCamera(45, this.ratio, 15, 3000);
-		this.camera.position.x = config.camera.position.x;
-		this.camera.position.y = config.camera.position.y;
-		this.camera.position.z = config.camera.position.z;
-		this.camera.lookAt(config.camera.target);
-
-		if ( config.axisHelper ) {
-			this.axisHelper =  new THREE.AxisHelper( 5 );
-			this.scene.add( this.axisHelper );
-		}
 
 		//// RENDERER
-		this.renderer = new THREE.WebGLRenderer();
-		this.renderer.setClearColor(config.canvas.color, 1.0);
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
-
-		//// AMBIANT LIGHT
-		this.ambient = new THREE.AmbientLight( config.lights.ambient.color );
-
-		//// ADD OBJECTS TO SCENE
-		this.scene.add( this.ambient );
+		this.renderer = new PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight);
 
 		if( config.useVideo ) {
 			this.createVideo();
@@ -66,14 +44,15 @@ module.exports = {
 			uNoiseInfluence:	{ type: "f", 	value: .0 },
 			uResolution: 		{ type: "v2", 	value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
 			uGreyscale: 		{ type: "i", 	value: config.greyscale },
-			uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : THREE.ImageUtils.loadTexture( config.textureURL ) },
+			// uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : THREE.ImageUtils.loadTexture( config.textureURL ) },
+			uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : PIXI.Texture.fromImage( config.textureURL ) },
 			uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
-		this.planeGeometry = new THREE.PlaneBufferGeometry( config.plane.width, config.plane.height, config.plane.segments, config.plane.segments );
-		this.planeMaterial = new THREE.ShaderMaterial( {
+		this.shader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl'),
+		this.planeMaterial 	= new THREE.ShaderMaterial( {
 			vertexShader: '#define MAX_INT '+ config.maxInteractions + require('../shaders/water.vertex.glsl'),
 			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl'),
 			uniforms: this.gazolineUniforms
@@ -83,7 +62,7 @@ module.exports = {
 
 
 		//// ADD CANVAS TO DOM
-		this.container.appendChild( this.renderer.domElement );
+		this.container.appendChild( this.renderer.view );
 
 		this.onResize();
 
@@ -171,7 +150,7 @@ module.exports = {
 	},
 
 	render: function() {
-		let delta = this.clock.getDelta();
+		let delta = .016;
 		this.gazolineUniforms.uTime.value += delta;
 
 		for( let i = 0 ; i < this.interactionsIndex ; i++ ) {
