@@ -8,6 +8,8 @@ import mapper 				from '../utils/mapper';
 import getIntersectionMouse from '../utils/getIntersectionMouse';
 import GlslCanvas			from 'glslCanvas';
 
+var PIXI = require('pixi');
+
 module.exports = {
 
 	init: function() {
@@ -18,11 +20,11 @@ module.exports = {
 		this.onMouseDown= this.onMouseDown.bind(this);
 		this.onMouseUp	= this.onMouseUp.bind(this);
 
-		this.plane   	= null;
-		this.composer 	= null;
 		this.interactionsPos 	= new Array();
 		this.interactionsTime 	= new Array();
 		this.interactionsIndex 	= 0;
+		this.width 	= window.innerWidth;
+		this.height = window.innerHeight;
 
 		for( let i = 0 ; i < config.maxInteractions ; i++ ) {
 			this.interactionsPos[i]  = new THREE.Vector3( 0, 0, 0 );
@@ -33,7 +35,7 @@ module.exports = {
 		this.container 	= config.canvas.element;
 
 		//// RENDERER
-		this.renderer = new PIXI.autoDetectRenderer(window.innerWidth, window.innerHeight);
+		this.renderer = new PIXI.autoDetectRenderer(this.container.offsetWidth / config.scale, this.container.offsetHeight / config.scale);
 
 		if( config.useVideo ) {
 			this.createVideo();
@@ -42,24 +44,24 @@ module.exports = {
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uNoiseInfluence:	{ type: "f", 	value: .0 },
-			uResolution: 		{ type: "v2", 	value: THREE.Vector2( this.canvas.width, this.canvas.height ) },
+			uResolution: 		{ type: "v2", 	value: Vector2( this.width, this.height ) },
 			uGreyscale: 		{ type: "i", 	value: config.greyscale },
-			// uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : THREE.ImageUtils.loadTexture( config.textureURL ) },
-			uTex: 				{ type: 't', 	value: config.useVideo ? this.videoTexture : PIXI.Texture.fromImage( config.textureURL ) },
 			uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
-		this.shader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl'),
-		this.planeMaterial 	= new THREE.ShaderMaterial( {
-			vertexShader: '#define MAX_INT '+ config.maxInteractions + require('../shaders/water.vertex.glsl'),
-			fragmentShader: require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl'),
-			uniforms: this.gazolineUniforms
-		});
-		this.plane = new THREE.Mesh( this.planeGeometry, this.planeMaterial );
-		this.scene.add( this.plane );
+		this.sprite 	= PIXI.Sprite.from( config.useVideo ? this.videoTexture : PIXI.Texture.fromImage( config.textureURL ) );
+		this.sprite.x 	= this.width * .5;
+		this.sprite.y 	= this.height * .5;
+		this.anchor.set( .5 );
 
+		this.shaderCode = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');
+		this.shader = new PIXI.AbstractFilter('', this.shaderCode, this.gazolineUniforms); 
+
+		this.sprite.filters[ this.shader ];
+
+		this.stage.addChild( this.sprite );
 
 		//// ADD CANVAS TO DOM
 		this.container.appendChild( this.renderer.view );
@@ -94,26 +96,19 @@ module.exports = {
 	},
 
 	onResize: function() {
-		this.canvas.width = this.container.offsetWidth / config.scale;
-		this.canvas.height = this.container.offsetHeight / config.scale;
-
-		this.renderer.setSize(this.canvas.width, this.canvas.height);
-		this.ratio = window.innerWidth / window.innerHeight;
+		this.width = this.container.offsetWidth / config.scale;
+		this.height = this.container.offsetHeight / config.scale;
 
 		// http://stackoverflow.com/questions/14614252/how-to-fit-camera-to-object
-		if( config.fit === 'height' ) {
-			this.fov = 2 * Math.atan( config.plane.height / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
-		}
-		else if( config.fit === 'width' ) {
-			this.fov = 2 * Math.atan( ( config.plane.width / this.ratio ) / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
-		}
+		// if( config.fit === 'height' ) {
+		// 	this.fov = 2 * Math.atan( config.plane.height / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
+		// }
+		// else if( config.fit === 'width' ) {
+		// 	this.fov = 2 * Math.atan( ( config.plane.width / this.ratio ) / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
+		// }
 
-		this.renderer.domElement.style.transform = 'scale(' + config.scale + ')';
-		this.renderer.domElement.style.transformOrigin = '0 0';
-
-		this.camera.aspect = this.ratio;
-		this.camera.fov = this.fov;
-		this.camera.updateProjectionMatrix();
+		this.renderer.view.style.transform = 'scale(' + config.scale + ')';
+		this.renderer.view.style.transformOrigin = '0 0';
 
 		this.halfWidth = window.innerWidth * .5;
 		this.halfHeight = window.innerHeight * .5;
@@ -178,7 +173,7 @@ module.exports = {
 			this.updateVideo();
 		}
 
-		this.renderer.render(this.scene, this.camera);
+		this.renderer.render( this.stage );
 	},
 
 	updateVideo: function() {
