@@ -6,7 +6,7 @@ module.exports = class Vector3 {
 		this.y = y || 0;
 		this.z = z || 0;
 
-		this.isVector3 = true,
+		this.isVector3 = true;
 	}
 
 	set( x, y, z ) {
@@ -17,7 +17,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setScalar( scalar ) {
 
@@ -27,7 +27,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setX( x ) {
 
@@ -35,7 +35,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setY( y ) {
 
@@ -43,7 +43,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setZ( z ) {
 
@@ -51,7 +51,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setComponent( index, value ) {
 
@@ -66,7 +66,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	getComponent( index ) {
 
@@ -79,13 +79,13 @@ module.exports = class Vector3 {
 
 		}
 
-	},
+	}
 
 	clone() {
 
 		return new this.constructor( this.x, this.y, this.z );
 
-	},
+	}
 
 	copy( v ) {
 
@@ -95,7 +95,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	add( v, w ) {
 
@@ -112,7 +112,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	addScalar( s ) {
 
@@ -122,7 +122,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	addVectors( a, b ) {
 
@@ -132,7 +132,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	addScaledVector( v, s ) {
 
@@ -142,7 +142,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	sub( v, w ) {
 
@@ -159,7 +159,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	subScalar( s ) {
 
@@ -169,7 +169,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	subVectors( a, b ) {
 
@@ -179,7 +179,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	multiply( v, w ) {
 
@@ -196,7 +196,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	multiplyScalar( scalar ) {
 
@@ -206,7 +206,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	multiplyVectors( a, b ) {
 
@@ -216,7 +216,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	applyMatrix3( m ) {
 
@@ -229,7 +229,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	applyMatrix4( m ) {
 
@@ -243,7 +243,7 @@ module.exports = class Vector3 {
 
 		return this.divideScalar( w );
 
-	},
+	}
 
 	applyQuaternion( q ) {
 
@@ -265,7 +265,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	transformDirection( m ) {
 
@@ -281,7 +281,7 @@ module.exports = class Vector3 {
 
 		return this.normalize();
 
-	},
+	}
 
 	divide( v ) {
 
@@ -291,13 +291,13 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	divideScalar( scalar ) {
 
 		return this.multiplyScalar( 1 / scalar );
 
-	},
+	}
 
 	min( v ) {
 
@@ -307,7 +307,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	max( v ) {
 
@@ -317,7 +317,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	clamp( min, max ) {
 
@@ -329,7 +329,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	clampScalar() {
 
@@ -345,7 +345,7 @@ module.exports = class Vector3 {
 
 		};
 
-	}(),
+	}
 
 	clampLength( min, max ) {
 
@@ -353,7 +353,7 @@ module.exports = class Vector3 {
 
 		return this.multiplyScalar( Math.max( min, Math.min( max, length ) ) / length );
 
-	},
+	}
 
 	floor() {
 
@@ -363,7 +363,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	ceil() {
 
@@ -373,7 +373,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	round() {
 
@@ -383,7 +383,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	roundToZero() {
 
@@ -393,7 +393,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	negate() {
 
@@ -403,13 +403,13 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	dot( v ) {
 
 		return this.x * v.x + this.y * v.y + this.z * v.z;
 
-	},
+	}
 
 	// TODO lengthSquared?
 
@@ -417,31 +417,31 @@ module.exports = class Vector3 {
 
 		return this.x * this.x + this.y * this.y + this.z * this.z;
 
-	},
+	}
 
 	length() {
 
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z );
 
-	},
+	}
 
 	lengthManhattan() {
 
 		return Math.abs( this.x ) + Math.abs( this.y ) + Math.abs( this.z );
 
-	},
+	}
 
 	normalize() {
 
 		return this.divideScalar( this.length() );
 
-	},
+	}
 
 	setLength( length ) {
 
 		return this.multiplyScalar( length / this.length() );
 
-	},
+	}
 
 	lerp( v, alpha ) {
 
@@ -451,13 +451,13 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	lerpVectors( v1, v2, alpha ) {
 
 		return this.subVectors( v2, v1 ).multiplyScalar( alpha ).add( v1 );
 
-	},
+	}
 
 	cross( v, w ) {
 
@@ -476,7 +476,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	crossVectors( a, b ) {
 
@@ -489,7 +489,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	projectOnVector( vector ) {
 
@@ -497,7 +497,7 @@ module.exports = class Vector3 {
 
 		return this.copy( vector ).multiplyScalar( scalar );
 
-	},
+	}
 
 	projectOnPlane() {
 
@@ -511,7 +511,7 @@ module.exports = class Vector3 {
 
 		};
 
-	}(),
+	}
 
 	reflect() {
 
@@ -526,7 +526,7 @@ module.exports = class Vector3 {
 
 		};
 
-	}(),
+	}
 
 	angleTo( v ) {
 
@@ -536,13 +536,13 @@ module.exports = class Vector3 {
 
 		return Math.acos( Math.max( -1, Math.min( 1, theta ) ) );
 
-	},
+	}
 
 	distanceTo( v ) {
 
 		return Math.sqrt( this.distanceToSquared( v ) );
 
-	},
+	}
 
 	distanceToSquared( v ) {
 
@@ -550,13 +550,13 @@ module.exports = class Vector3 {
 
 		return dx * dx + dy * dy + dz * dz;
 
-	},
+	}
 
 	distanceToManhattan( v ) {
 
 		return Math.abs( this.x - v.x ) + Math.abs( this.y - v.y ) + Math.abs( this.z - v.z );
 
-	},
+	}
 
 	setFromSpherical( s ) {
 
@@ -568,7 +568,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setFromCylindrical( c ) {
 
@@ -578,13 +578,13 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setFromMatrixPosition( m ) {
 
 		return this.setFromMatrixColumn( m, 3 );
 
-	},
+	}
 
 	setFromMatrixScale( m ) {
 
@@ -598,20 +598,20 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setFromMatrixColumn( m, index ) {
 
 
 		return this.fromArray( m.elements, index * 4 );
 
-	},
+	}
 
 	equals( v ) {
 
 		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) );
 
-	},
+	}
 
 	fromArray( array, offset ) {
 
@@ -623,7 +623,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	toArray( array, offset ) {
 
@@ -636,7 +636,7 @@ module.exports = class Vector3 {
 
 		return array;
 
-	},
+	}
 
 	fromBufferAttribute( attribute, index, offset ) {
 

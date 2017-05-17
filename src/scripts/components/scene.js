@@ -1,14 +1,12 @@
-import Vector2 from './Vector2';
-import Vector3 from './Vector3';
-import Vector4 from './Vector4';
+import Vector2 from '../utils/Vector2';
+import Vector3 from '../utils/Vector3';
+import Vector4 from '../utils/Vector4';
 
 import config 				from '../utils/config';
 import raf 					from '../utils/raf';
 import mapper 				from '../utils/mapper';
-import getIntersectionMouse from '../utils/getIntersectionMouse';
-import GlslCanvas			from 'glslCanvas';
 
-var PIXI = require('pixi');
+// var PIXI = require('pixi');
 
 module.exports = {
 
@@ -27,7 +25,7 @@ module.exports = {
 		this.height = window.innerHeight;
 
 		for( let i = 0 ; i < config.maxInteractions ; i++ ) {
-			this.interactionsPos[i]  = new THREE.Vector3( 0, 0, 0 );
+			this.interactionsPos[i]  = new Vector3( 0, 0, 0 );
 			this.interactionsTime[i] = 100;
 		}
 		
@@ -35,29 +33,33 @@ module.exports = {
 		this.container 	= config.canvas.element;
 
 		//// RENDERER
-		this.renderer = new PIXI.autoDetectRenderer(this.container.offsetWidth / config.scale, this.container.offsetHeight / config.scale);
+		this.renderer = new PIXI.autoDetectRenderer(this.container.offsetWidth, this.container.offsetHeight);
 
 		if( config.useVideo ) {
 			this.createVideo();
 		}
 
 		this.gazolineUniforms = {
-			uTime: 				{ type: "f", 	value: .0 },
-			uNoiseInfluence:	{ type: "f", 	value: .0 },
-			uResolution: 		{ type: "v2", 	value: Vector2( this.width, this.height ) },
-			uGreyscale: 		{ type: "i", 	value: config.greyscale },
-			uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
-			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
-			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
+			// uTime: 				{ type: "f", 	value: .0 },
+			// uNoiseInfluence:	{ type: "f", 	value: .0 },
+			// uResolution: 		{ type: "v2", 	value: new Vector2( this.width, this.height ) },
+			// uGreyscale: 		{ type: "i", 	value: config.greyscale },
+			// uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
+			// uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
+			// uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
-		this.sprite 	= PIXI.Sprite.from( config.useVideo ? this.videoTexture : PIXI.Texture.fromImage( config.textureURL ) );
-		this.sprite.x 	= this.width * .5;
-		this.sprite.y 	= this.height * .5;
-		this.anchor.set( .5 );
+		this.sprite 	= PIXI.Sprite.fromImage( config.useVideo ? this.videoTexture : config.textureURL );
+		// this.sprite.x 	= this.width * .5;
+		// this.sprite.y 	= this.height * .5;
+		// this.sprite.anchor.set( .5 );
 
-		this.shaderCode = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');
-		this.shader = new PIXI.AbstractFilter('', this.shaderCode, this.gazolineUniforms); 
+		// this.shaderCode = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');
+		this.fragmentShader = require('../shaders/water.fragment.glsl');
+		this.vertexShader = require('../shaders/water.fragment.glsl');
+		this.shader = new PIXI.AbstractFilter('', this.fragmentShader, this.gazolineUniforms); 
+
+		console.log(this.shader)
 
 		this.sprite.filters[ this.shader ];
 
@@ -72,11 +74,11 @@ module.exports = {
 		raf.register( this.render );
 		raf.start();
 
-		window.addEventListener( 'click', this.onClick );
-		window.addEventListener( 'pointerdown', this.onMouseDown );
-		window.addEventListener( 'pointerup', this.onMouseUp );
-		window.addEventListener( 'resize', this.onResize );
-		window.addEventListener( 'mousemove', this.onMove );
+		// window.addEventListener( 'click', this.onClick );
+		// window.addEventListener( 'pointerdown', this.onMouseDown );
+		// window.addEventListener( 'pointerup', this.onMouseUp );
+		// window.addEventListener( 'resize', this.onResize );
+		// window.addEventListener( 'mousemove', this.onMove );
 	},
 
 	onClick: function( event ) {
@@ -96,8 +98,10 @@ module.exports = {
 	},
 
 	onResize: function() {
-		this.width = this.container.offsetWidth / config.scale;
-		this.height = this.container.offsetHeight / config.scale;
+		// this.width = this.container.offsetWidth / config.scale;
+		// this.height = this.container.offsetHeight / config.scale;
+		this.width = this.container.offsetWidth;
+		this.height = this.container.offsetHeight;
 
 		// http://stackoverflow.com/questions/14614252/how-to-fit-camera-to-object
 		// if( config.fit === 'height' ) {
@@ -107,8 +111,8 @@ module.exports = {
 		// 	this.fov = 2 * Math.atan( ( config.plane.width / this.ratio ) / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
 		// }
 
-		this.renderer.view.style.transform = 'scale(' + config.scale + ')';
-		this.renderer.view.style.transformOrigin = '0 0';
+		// this.renderer.view.style.transform = 'scale(' + config.scale + ')';
+		// this.renderer.view.style.transformOrigin = '0 0';
 
 		this.halfWidth = window.innerWidth * .5;
 		this.halfHeight = window.innerHeight * .5;

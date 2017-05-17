@@ -1,12 +1,11 @@
 module.exports = class Vector2 {
 
-	constructor( x, y, z ) {
+	constructor( x, y ) {
 
 		this.x = x || 0;
 		this.y = y || 0;
-		this.z = z || 0;
 
-		this.isVector2 = true,
+		this.isVector2 = true;
 	}
 
 	set( x, y ) {
@@ -237,7 +236,7 @@ module.exports = class Vector2 {
 
 		};
 
-	}(),
+	}
 
 	clampLength( min, max ) {
 
@@ -310,7 +309,7 @@ module.exports = class Vector2 {
 
 	}
 
-	lengthManhattan: function() {
+	lengthManhattan() {
 
 		return Math.abs( this.x ) + Math.abs( this.y );
 

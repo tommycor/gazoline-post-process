@@ -1,13 +1,13 @@
-module.exports = class Vector3 {
+module.exports = class Vector4 {
 
-	constructor( x, y, z ) {
+	constructor( x, y, z, w ) {
 
 		this.x = x || 0;
 		this.y = y || 0;
 		this.z = z || 0;
 		this.w = ( w !== undefined ) ? w : 1;
 
-		this.isVector3 = true,
+		this.isVector4 = true;
 	}
 
 	set( x, y, z, w ) {
@@ -19,7 +19,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setScalar( scalar ) {
 
@@ -30,7 +30,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setX( x ) {
 
@@ -38,7 +38,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setY( y ) {
 
@@ -46,7 +46,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setZ( z ) {
 
@@ -54,7 +54,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setW( w ) {
 
@@ -62,7 +62,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setComponent( index, value ) {
 
@@ -78,7 +78,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	getComponent( index ) {
 
@@ -92,13 +92,13 @@ module.exports = class Vector3 {
 
 		}
 
-	},
+	}
 
 	clone() {
 
 		return new this.constructor( this.x, this.y, this.z, this.w );
 
-	},
+	}
 
 	copy( v ) {
 
@@ -109,7 +109,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	add( v, w ) {
 
@@ -127,7 +127,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	addScalar( s ) {
 
@@ -138,7 +138,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	addVectors( a, b ) {
 
@@ -149,7 +149,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	addScaledVector( v, s ) {
 
@@ -160,7 +160,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	sub( v, w ) {
 
@@ -178,7 +178,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	subScalar( s ) {
 
@@ -189,7 +189,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	subVectors( a, b ) {
 
@@ -200,7 +200,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	multiplyScalar( scalar ) {
 
@@ -211,7 +211,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	applyMatrix4( m ) {
 
@@ -225,13 +225,13 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	divideScalar( scalar ) {
 
 		return this.multiplyScalar( 1 / scalar );
 
-	},
+	}
 
 	setAxisAngleFromQuaternion( q ) {
 
@@ -259,7 +259,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	setAxisAngleFromRotationMatrix( m ) {
 
@@ -389,7 +389,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	min( v ) {
 
@@ -400,7 +400,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	max( v ) {
 
@@ -411,7 +411,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	clamp( min, max ) {
 
@@ -424,7 +424,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	clampScalar() {
 
@@ -440,7 +440,7 @@ module.exports = class Vector3 {
 
 		};
 
-	}(),
+	}
 
 	floor() {
 
@@ -451,7 +451,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	ceil() {
 
@@ -462,7 +462,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	round() {
 
@@ -473,7 +473,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	roundToZero() {
 
@@ -484,7 +484,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	negate() {
 
@@ -495,43 +495,43 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	dot( v ) {
 
 		return this.x * v.x + this.y * v.y + this.z * v.z + this.w * v.w;
 
-	},
+	}
 
 	lengthSq() {
 
 		return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
 
-	},
+	}
 
 	length() {
 
 		return Math.sqrt( this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w );
 
-	},
+	}
 
 	lengthManhattan() {
 
 		return Math.abs( this.x ) + Math.abs( this.y ) + Math.abs( this.z ) + Math.abs( this.w );
 
-	},
+	}
 
 	normalize() {
 
 		return this.divideScalar( this.length() );
 
-	},
+	}
 
 	setLength( length ) {
 
 		return this.multiplyScalar( length / this.length() );
 
-	},
+	}
 
 	lerp( v, alpha ) {
 
@@ -542,19 +542,19 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	lerpVectors( v1, v2, alpha ) {
 
 		return this.subVectors( v2, v1 ).multiplyScalar( alpha ).add( v1 );
 
-	},
+	}
 
 	equals( v ) {
 
 		return ( ( v.x === this.x ) && ( v.y === this.y ) && ( v.z === this.z ) && ( v.w === this.w ) );
 
-	},
+	}
 
 	fromArray( array, offset ) {
 
@@ -567,7 +567,7 @@ module.exports = class Vector3 {
 
 		return this;
 
-	},
+	}
 
 	toArray( array, offset ) {
 
@@ -581,7 +581,7 @@ module.exports = class Vector3 {
 
 		return array;
 
-	},
+	}
 
 	fromBufferAttribute( attribute, index, offset ) {
 
