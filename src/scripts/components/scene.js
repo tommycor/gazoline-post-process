@@ -29,8 +29,9 @@ module.exports = {
 			this.interactionsTime[i] = 100;
 		}
 		
-		this.stage 	   	= new PIXI.Container();
+		this.app 	   	= new PIXI.Application();
 		this.container 	= config.canvas.element;
+		this.container.appendChild( this.app.view );
 
 		//// RENDERER
 		this.renderer = new PIXI.autoDetectRenderer(this.container.offsetWidth, this.container.offsetHeight);
@@ -50,23 +51,24 @@ module.exports = {
 		};
 
 		this.sprite 	= PIXI.Sprite.fromImage( config.useVideo ? this.videoTexture : config.textureURL );
-		// this.sprite.x 	= this.width * .5;
-		// this.sprite.y 	= this.height * .5;
-		// this.sprite.anchor.set( .5 );
+		this.sprite.x 	= this.width * .5;
+		this.sprite.y 	= this.height * .5;
+		this.sprite.width 	= this.width * .5;
+		this.sprite.height 	= this.height * .5;
+		this.sprite.anchor.set( .5 );
 
 		// this.shaderCode = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');
 		this.fragmentShader = require('../shaders/water.fragment.glsl');
 		this.vertexShader = require('../shaders/water.fragment.glsl');
-		this.shader = new PIXI.AbstractFilter('', this.fragmentShader, this.gazolineUniforms); 
+		this.filter = new PIXI.Shader('', this.fragmentShader, this.gazolineUniforms);
 
-		console.log(this.shader)
+		console.log(this.sprite.filters, this.filter)
 
-		this.sprite.filters[ this.shader ];
 
-		this.stage.addChild( this.sprite );
 
-		//// ADD CANVAS TO DOM
-		this.container.appendChild( this.renderer.view );
+		this.sprite.sader[ this.filter ];
+
+		this.app.stage.addChild( this.sprite );
 
 		this.onResize();
 
@@ -149,35 +151,35 @@ module.exports = {
 	},
 
 	render: function() {
-		let delta = .016;
-		this.gazolineUniforms.uTime.value += delta;
+		// let delta = .016;
+		// this.gazolineUniforms.uTime.value += delta;
 
-		for( let i = 0 ; i < this.interactionsIndex ; i++ ) {
-			this.interactionsTime[i] += delta;
+		// for( let i = 0 ; i < this.interactionsIndex ; i++ ) {
+		// 	this.interactionsTime[i] += delta;
 
-			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if( this.interactionsPos[i].z != 100 ) {
-				if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
-					this.removeItem( i );
-				}
-			}
-			if( this.interactionsPos[i].z == 100 ) {
-				if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
-					this.removeItem( i );
-				}
-			}
-		}
+		// 	// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
+		// 	if( this.interactionsPos[i].z != 100 ) {
+		// 		if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
+		// 			this.removeItem( i );
+		// 		}
+		// 	}
+		// 	if( this.interactionsPos[i].z == 100 ) {
+		// 		if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
+		// 			this.removeItem( i );
+		// 		}
+		// 	}
+		// }
 
 
-		this.gazolineUniforms.uNoiseInfluence.value = this.interactionsIndex / 250;
+		// this.gazolineUniforms.uNoiseInfluence.value = this.interactionsIndex / 250;
 
-		this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
+		// this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
 
-		if( config.useVideo ) {
-			this.updateVideo();
-		}
+		// if( config.useVideo ) {
+		// 	this.updateVideo();
+		// }
 
-		this.renderer.render( this.stage );
+		// this.renderer.render( this.stage );
 	},
 
 	updateVideo: function() {
