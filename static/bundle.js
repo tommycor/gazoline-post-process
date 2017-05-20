@@ -31,229 +31,140 @@ var _utilsMapper2 = _interopRequireDefault(_utilsMapper);
 
 module.exports = {
 
-		init: function init() {
-				this.render = this.render.bind(this);
-				this.onResize = this.onResize.bind(this);
-				this.onMove = this.onMove.bind(this);
-				this.onClick = this.onClick.bind(this);
-				this.onMouseDown = this.onMouseDown.bind(this);
-				this.onMouseUp = this.onMouseUp.bind(this);
+	init: function init() {
+		this.render = this.render.bind(this);
+		this.onResize = this.onResize.bind(this);
+		this.onMove = this.onMove.bind(this);
+		this.onClick = this.onClick.bind(this);
+		this.onMouseDown = this.onMouseDown.bind(this);
+		this.onMouseUp = this.onMouseUp.bind(this);
 
-				this.interactionsPos = new Array();
-				this.interactionsTime = new Array();
-				this.interactionsIndex = 0;
-				this.width = window.innerWidth;
-				this.height = window.innerHeight;
+		this.interactionsPos = new Array();
+		this.interactionsTime = new Array();
+		this.interactionsIndex = 0;
 
-				for (var i = 0; i < _utilsConfig2['default'].maxInteractions; i++) {
-						this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
-						this.interactionsTime[i] = 100;
-				}
-
-				this.app = new PIXI.Application();
-				this.container = _utilsConfig2['default'].canvas.element;
-				this.container.appendChild(this.app.view);
-
-				//// RENDERER
-				this.renderer = new PIXI.autoDetectRenderer(this.container.offsetWidth, this.container.offsetHeight);
-
-				if (_utilsConfig2['default'].useVideo) {
-						this.createVideo();
-				}
-
-				this.gazolineUniforms = {
-						// uTime: 				{ type: "f", 	value: .0 },
-						// uNoiseInfluence:	{ type: "f", 	value: .0 },
-						// uResolution: 		{ type: "v2", 	value: new Vector2( this.width, this.height ) },
-						// uGreyscale: 		{ type: "i", 	value: config.greyscale },
-						// uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
-						// uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
-						// uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
-				};
-
-				this.sprite = PIXI.Sprite.fromImage(_utilsConfig2['default'].useVideo ? this.videoTexture : _utilsConfig2['default'].textureURL);
-				this.sprite.x = this.width * .5;
-				this.sprite.y = this.height * .5;
-				this.sprite.width = this.width * .5;
-				this.sprite.height = this.height * .5;
-				this.sprite.anchor.set(.5);
-
-				// this.shaderCode = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');
-				this.fragmentShader = require('../shaders/water.fragment.glsl');
-				this.vertexShader = require('../shaders/water.fragment.glsl');
-				this.filter = new PIXI.Shader('', this.fragmentShader, this.gazolineUniforms);
-
-				console.log(this.sprite.filters, this.filter);
-
-				this.sprite.sader[this.filter];
-
-				this.app.stage.addChild(this.sprite);
-
-				this.onResize();
-
-				//// REGIST RENDERER
-				_utilsRaf2['default'].register(this.render);
-				_utilsRaf2['default'].start();
-
-				// window.addEventListener( 'click', this.onClick );
-				// window.addEventListener( 'pointerdown', this.onMouseDown );
-				// window.addEventListener( 'pointerup', this.onMouseUp );
-				// window.addEventListener( 'resize', this.onResize );
-				// window.addEventListener( 'mousemove', this.onMove );
-		},
-
-		onClick: function onClick(event) {
-				this.addInteractionFromEvent(event, 100);
-		},
-
-		onMove: function onMove(event) {
-				this.addInteractionFromEvent(event, this.isCapting ? 100 : 1);
-		},
-
-		onMouseDown: function onMouseDown(event) {
-				// this.isCapting = true;
-		},
-
-		onMouseUp: function onMouseUp(event) {
-				// this.isCapting = false;
-		},
-
-		onResize: function onResize() {
-				// this.width = this.container.offsetWidth / config.scale;
-				// this.height = this.container.offsetHeight / config.scale;
-				this.width = this.container.offsetWidth;
-				this.height = this.container.offsetHeight;
-
-				// http://stackoverflow.com/questions/14614252/how-to-fit-camera-to-object
-				// if( config.fit === 'height' ) {
-				// 	this.fov = 2 * Math.atan( config.plane.height / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
-				// }
-				// else if( config.fit === 'width' ) {
-				// 	this.fov = 2 * Math.atan( ( config.plane.width / this.ratio ) / ( 2 * config.camera.position.z ) ) * ( 180 / Math.PI );
-				// }
-
-				// this.renderer.view.style.transform = 'scale(' + config.scale + ')';
-				// this.renderer.view.style.transformOrigin = '0 0';
-
-				this.halfWidth = window.innerWidth * .5;
-				this.halfHeight = window.innerHeight * .5;
-		},
-
-		addInteractionFromEvent: function addInteractionFromEvent(event, ponderation) {
-				var position = getIntersectionMouse(event, this.plane, this.camera);
-
-				if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
-						this.removeItem(0);
-				}
-
-				if (ponderation != 100) {
-						if (this.interactionsIndex > 0) {
-								var delta = new THREE.Vector2(position.x, position.y).distanceTo(new THREE.Vector2(this.interactionsPos[this.interactionsIndex - 1].x, this.interactionsPos[this.interactionsIndex - 1].y));
-								ponderation = 1 - delta * .5;
-
-								if (ponderation < _utilsConfig2['default'].minPonderation) {
-										ponderation = _utilsConfig2['default'].minPonderation;
-								}
-						} else {
-								ponderation = 1;
-						}
-				}
-
-				this.interactionsPos[this.interactionsIndex] = new THREE.Vector3(position.x, position.y, ponderation);
-				this.interactionsTime[this.interactionsIndex] = 0;
-				this.interactionsIndex++;
-
-				this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
-				this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
-		},
-
-		render: function render() {
-				// let delta = .016;
-				// this.gazolineUniforms.uTime.value += delta;
-
-				// for( let i = 0 ; i < this.interactionsIndex ; i++ ) {
-				// 	this.interactionsTime[i] += delta;
-
-				// 	// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-				// 	if( this.interactionsPos[i].z != 100 ) {
-				// 		if( this.interactionsTime[i] > 3 &&  this.interactionsTime[i] < 50 ) {
-				// 			this.removeItem( i );
-				// 		}
-				// 	}
-				// 	if( this.interactionsPos[i].z == 100 ) {
-				// 		if( this.interactionsTime[i] > 5 &&  this.interactionsTime[i] < 50 ) {
-				// 			this.removeItem( i );
-				// 		}
-				// 	}
-				// }
-
-				// this.gazolineUniforms.uNoiseInfluence.value = this.interactionsIndex / 250;
-
-				// this.gazolineUniforms.uInteractionsTime.value = this.interactionsTime;
-
-				// if( config.useVideo ) {
-				// 	this.updateVideo();
-				// }
-
-				// this.renderer.render( this.stage );
-		},
-
-		updateVideo: function updateVideo() {
-				if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
-
-						this.videoImageContext.drawImage(this.video, 0, 0);
-
-						if (this.videoTexture) {
-								this.videoTexture.needsUpdate = true;
-						}
-				}
-		},
-
-		removeItem: function removeItem(index) {
-				this.interactionsTime.splice(index, 1);
-				this.interactionsPos.splice(index, 1);
-				this.interactionsIndex--;
-
-				this.interactionsPos.push(new THREE.Vector2(0, 0, 0));
-				this.interactionsTime.push(100);
-
-				this.gazolineUniforms.uInteractionsIndex.value = this.interactionsIndex;
-				this.gazolineUniforms.uInteractionsPos.value = this.interactionsPos;
-		},
-
-		createVideo: function createVideo() {
-				this.video = document.createElement('video');
-				this.video.src = _utilsConfig2['default'].video.url;
-				this.video.load();
-				this.video.play();
-
-				this.videoImage = document.createElement('canvas');
-				this.videoImage.width = 1280;
-				this.videoImage.height = 720;
-
-				this.videoImageContext = this.videoImage.getContext('2d');
-
-				this.videoImageContext.fillStyle = '#000000';
-				this.videoImageContext.fillRect(0, 0, this.videoImage.width, this.videoImage.height);
-
-				this.videoImage.style.width = "160px";
-				this.videoImage.style.height = "90px";
-				this.videoImage.style.display = "block";
-				this.videoImage.style.position = "absolute";
-				this.videoImage.style.top = "0";
-				this.videoImage.style.left = "0";
-
-				document.body.appendChild(this.videoImage);
-
-				this.videoTexture = new THREE.Texture(this.videoImage);
-				this.videoTexture.minFilter = THREE.LinearFilter;
-				this.videoTexture.magFilter = THREE.LinearFilter;
-				this.videoTexture.format = THREE.RGBFormat;
+		for (var i = 0; i < _utilsConfig2['default'].maxInteractions; i++) {
+			this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
+			this.interactionsTime[i] = 100;
 		}
+
+		this.app = new PIXI.Application();
+		this.container = _utilsConfig2['default'].canvas.element;
+
+		this.renderer = new PIXI.autoDetectRenderer(this.container.offsetWidth, this.container.offsetHeight);
+
+		this.sprite = PIXI.Sprite.fromImage(_utilsConfig2['default'].textureURL);
+		this.sprite.width = this.app.renderer.width;
+		this.sprite.height = this.app.renderer.height;
+
+		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + _utilsConfig2['default'].maxInteractions + require('../shaders/water.fragment.glsl');;
+		this.gazolineUniforms = {
+			uTime: { type: "f", value: .0 },
+			uNoiseInfluence: { type: "f", value: .0 },
+			uResolution: { type: "v2", value: new _utilsVector22['default'](this.width, this.height) },
+			uInteractionsPos: { type: 'v3v', value: this.interactionsPos },
+			uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
+			uInteractionsIndex: { type: 'i', value: this.interactionsIndex }
+		};
+
+		this.filter = new PIXI.Filter(null, this.fragmentShader, this.gazolineUniforms);
+
+		this.sprite.filters = [this.filter];
+
+		this.sprite.interactive = true;
+		this.sprite.on('pointermove', this.onMove);
+
+		this.app.stage.addChild(this.sprite);
+		this.container.appendChild(this.app.view);
+
+		this.app.ticker.add(this.render);
+	},
+
+	onClick: function onClick(event) {},
+
+	onMove: function onMove(event) {
+		this.addInteractionFromEvent(event, this.isCapting ? 100 : 1);
+	},
+
+	onMouseDown: function onMouseDown(event) {},
+
+	onMouseUp: function onMouseUp(event) {},
+
+	onResize: function onResize() {},
+
+	addInteractionFromEvent: function addInteractionFromEvent(event, ponderation) {
+		var position = event.data.global;
+
+		if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
+			this.removeItem(0);
+		}
+
+		if (ponderation != 100) {
+			if (this.interactionsIndex > 0) {
+				var delta = new _utilsVector22['default'](position.x, position.y).distanceTo(new _utilsVector22['default'](this.interactionsPos[this.interactionsIndex - 1].x, this.interactionsPos[this.interactionsIndex - 1].y));
+				ponderation = 1 - delta * .5;
+
+				if (ponderation < _utilsConfig2['default'].minPonderation) {
+					ponderation = _utilsConfig2['default'].minPonderation;
+				}
+			} else {
+				ponderation = 1;
+			}
+		}
+
+		this.interactionsPos[this.interactionsIndex] = new _utilsVector32['default'](position.x, position.y, ponderation);
+		this.interactionsTime[this.interactionsIndex] = 0;
+		this.interactionsIndex++;
+
+		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
+		this.filter.uniforms.uInteractionsPos = this.interactionsPos;
+	},
+
+	render: function render(delta) {
+		delta *= .01;
+
+		this.filter.uniforms.uTime += delta;
+
+		for (var i = 0; i < this.interactionsIndex; i++) {
+			this.interactionsTime[i] += delta;
+
+			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
+			if (this.interactionsPos[i].z != 100) {
+				if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
+					this.removeItem(i);
+				}
+			}
+			if (this.interactionsPos[i].z == 100) {
+				if (this.interactionsTime[i] > 5 && this.interactionsTime[i] < 50) {
+					this.removeItem(i);
+				}
+			}
+		}
+
+		this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
+
+		this.filter.uniforms.uInteractionsTime = this.interactionsTime;
+	},
+
+	removeItem: function removeItem(index) {
+		this.interactionsTime.splice(index, 1);
+		this.interactionsPos.splice(index, 1);
+		this.interactionsIndex--;
+
+		this.interactionsPos.push(new _utilsVector22['default'](0, 0, 0));
+		this.interactionsTime.push(100);
+
+		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
+		this.filter.uniforms.uInteractionsPos = this.interactionsPos;
+	},
+
+	updateVideo: function updateVideo() {},
+
+	createVideo: function createVideo() {}
 
 };
 
-},{"../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/raf":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
+},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/raf":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -267,8 +178,11 @@ window.onload = function () {
 	_componentsScene2['default'].init();
 };
 
-},{"./components/scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
-module.exports = "\r\n// #define MAX_DIST_1 15.\r\n// #define MAX_DIST_2 25.\r\n// #define MAX_Time 10.\r\n// #define PI 3.1415926535\r\n// #define PI_2 6.2831853071\r\n\r\n// #define s_influenceSlope -.08\r\n// #define s_frequency 2.5\r\n// #define s_amplitude .2\r\n// #define s_waveLength .5\r\n// #define s_shift .08\r\n\r\n// #define b_influenceSlope -.08\r\n// #define b_frequency 4.\r\n// #define b_amplitude 4.\r\n// #define b_waveLength .2\r\n// #define b_shift 1.\r\n\r\n// uniform float uTime;\r\n// uniform float uNoiseInfluence;\r\n// uniform vec2 uResolution;\r\n// uniform bool uGreyscale;\r\n// uniform sampler2D uTex;\r\n\r\n// uniform float uInteractionsTime[ MAX_INT ];\r\n// uniform vec3 uInteractionsPos[ MAX_INT ];\r\n// uniform float uInteractionsPonderation[ MAX_INT ];\r\n// uniform int uInteractionsIndex;\r\n\r\n// varying vec2 vUv;\r\n// varying vec3 vPosition;\r\n\r\n// vec3 offset = vec3( 0., .1, .2);\r\n// vec3 offsetWave = vec3( .4, .2, .0);\r\n// vec3 noise \t= vec3(.0, .0, .0);\r\n// vec3 rgb \t= vec3(.0, .0, .0);\r\n// vec2 diff \t= vec2(.0, .0);\r\n\r\n\r\nvoid main() {\r\n\r\n\t// noise = vec3(\r\n\t// \tsnoise( vec3( vUv * 2. + offset.r, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,\r\n\t// \tsnoise( vec3( vUv * 2. + offset.g, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,\r\n\t// \tsnoise( vec3( vUv * 2. + offset.b, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.\r\n\t// );\r\n\r\n\t// vec3 globalSinVal = vec3( 1. );\r\n\t// vec2 explosions = vec2( 0. );\r\n\r\n\t// vec3 sinVal = vec3( .0 );\r\n\t// float dist  = .0;\r\n\t// float influence = .0;\r\n\t// float influenceTime = .0;\r\n\t// float vitesse = .0;\r\n\r\n\t// for( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t// \tif( i >= uInteractionsIndex ) {\r\n\t// \t\tbreak;\r\n\t// \t}\r\n\r\n\t// \tsinVal = vec3( .0 );\r\n\t// \tdist = .0;\r\n\t// \tinfluence = .0;\r\n\t// \tinfluenceTime = .0;\r\n\t// \tvitesse = 1.;\r\n\r\n\r\n\t// \tif( uInteractionsPos[i].z != 100. ) {\r\n\t// \t\tdist = distance( uInteractionsPos[i].xy, vPosition.xy ) / uInteractionsPos[i].z;\r\n\r\n\t// \t\t// INFLUENCE FROM DIST + SPAWNING \r\n\t// \t\t// if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {\r\n\t// \t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {\r\n\t// \t\t\tinfluence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;\r\n\r\n\t// \t\t\tif( influence > 1. ) { \r\n\t// \t\t\t\tinfluence = 1.;\r\n\t// \t\t\t}\r\n\r\n\t// \t\t\t// FADE OUT\r\n\t// \t\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\t// \t\t\tif( influenceTime > .0 ) {\r\n\r\n\t// \t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t// \t\t\t\t// influence is gonna act on simili sombrero function\r\n\t// \t\t\t\tif( influence > .0 ) {\r\n\r\n\t// \t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t// \t\t\t\t\tsinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;\r\n\r\n\t// \t\t\t\t\tsinVal = sinVal * influence;\r\n\t// \t\t\t\t}\r\n\t// \t\t\t}\r\n\t// \t\t}\r\n\t// \t}\r\n\r\n\r\n\t// \telse if( uInteractionsPos[i].z == 100. ) {\r\n\t// \t\tdist = distance( uInteractionsPos[i].xy, vPosition.xy );\r\n\r\n\t// \t\t// INFLUENCE FROM DIST + SPAWNING \r\n\t// \t\tif( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {\r\n\t// \t\t\tinfluence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;\r\n\r\n\t// \t\t\tif( influence > 1. ) { \r\n\t// \t\t\t\tinfluence = 1.;\r\n\t// \t\t\t}\r\n\r\n\t// \t\t\t// FADE OUT\r\n\t// \t\t\tinfluenceTime = ( uInteractionsTime[i] * -.3 + 1. );\r\n\t// \t\t\t// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );\r\n\t\t\t\t\r\n\t// \t\t\tif( influenceTime > .0 ) {\r\n\r\n\t// \t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t// \t\t\t\t// influence is gonna act on simili sombrero function\r\n\t// \t\t\t\tif( influence > .0 ) {\r\n\r\n\t// \t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t// \t\t\t\t\tsinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;\r\n\r\n\t// \t\t\t\t\tsinVal = sinVal * influence;\r\n\t// \t\t\t\t}\r\n\t// \t\t\t}\r\n\t// \t\t}\r\n\t// \t}\r\n\r\n\t// \tif( sinVal == vec3( .0 ) ) { continue; }\r\n\r\n\t// \tglobalSinVal = globalSinVal + globalSinVal * sinVal;\r\n\r\n\t// \texplosions = explosions + ( vec2( uInteractionsPos[i].xy - vPosition.xy ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t// }\r\n\r\n\t// rgb = texture2D(uTex, vUv + explosions * .004 ).rgb * noise;\r\n\r\n\t// rgb = rgb * globalSinVal;\r\n\r\n\t// gl_FragColor = vec4( rgb, 1. );\r\n\tgl_FragColor = vec4( 1., 0., 1., 1. );\r\n}\r\n";
+},{"./components/scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl":[function(require,module,exports){
+module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
+
+},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
+module.exports = "\r\n#define MAX_DIST_1 15.\r\n#define MAX_DIST_2 25.\r\n#define MAX_Time 10.\r\n#define PI 3.1415926535\r\n#define PI_2 6.2831853071\r\n\r\n#define s_influenceSlope -.08\r\n#define s_frequency 2.5\r\n#define s_amplitude .2\r\n#define s_waveLength .5\r\n#define s_shift .08\r\n\r\n#define b_influenceSlope -.08\r\n#define b_frequency 4.\r\n#define b_amplitude 4.\r\n#define b_waveLength .2\r\n#define b_shift 1.\r\n\r\n\r\n\r\nuniform float uTime;\r\nuniform sampler2D uSampler;\r\nuniform vec2 uResolution;\r\nuniform sampler2D uTex;\r\n\r\nvarying vec2 vFilterCoord;\r\nvarying vec2 vTextureCoord;\r\nvarying vec4 vColor;\r\n\r\nuniform float uInteractionsTime[ MAX_INT ];\r\nuniform vec3 uInteractionsPos[ MAX_INT ];\r\nuniform float uInteractionsPonderation[ MAX_INT ];\r\nuniform int uInteractionsIndex;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 offsetWave = vec3( .4, .2, .0);\r\nvec3 noise \t= vec3(.0, .0, .0);\r\nvec3 rgb \t= vec3(.0, .0, .0);\r\nvec2 diff \t= vec2(.0, .0);\r\n\r\nvoid main( void ) {\r\n\r\n\tvec2 uvs = vTextureCoord.xy;\r\n\r\n\tnoise = vec3(\r\n\t\tsnoise( vec3( uvs * 2. + offset.r, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uvs * 2. + offset.g, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uvs * 2. + offset.b, uTime * .5 ) ) * .5 + 1.\r\n\t);\r\n\r\n\tvec3 globalSinVal = vec3( 1. );\r\n\tvec2 explosions = vec2( 0. );\r\n\r\n\tvec3 sinVal = vec3( .0 );\r\n\tfloat dist  = .0;\r\n\tfloat influence = .0;\r\n\tfloat influenceTime = .0;\r\n\tfloat vitesse = .0;\r\n\r\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t\tif( i >= uInteractionsIndex ) {\r\n\t\t\tbreak;\r\n\t\t}\r\n\r\n\t\tsinVal = vec3( .0 );\r\n\t\tdist = .0;\r\n\t\tinfluence = .0;\r\n\t\tinfluenceTime = .0;\r\n\t\tvitesse = 1.;\r\n\r\n\t\tif( uInteractionsPos[i].z != 100. ) {\r\n\t\t\tdist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z;\r\n\r\n\t\t\t// if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {\r\n\t\t\t// \tinfluence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;\r\n\r\n\t\t\t// \t// FADE OUT\r\n\t\t\t// \tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\t\t\t// \tif( influenceTime > .0 ) {\r\n\r\n\t\t\t// \t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t// \t\tif( influence > .0 )\t\t\t\t {\r\n\r\n\t\t\t// \t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t// \t\t\tsinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;\r\n\r\n\t\t\t// \t\t\tsinVal = sinVal * influence;\r\n\t\t\t// \t\t}\r\n\t\t\t// \t}\r\n\t\t\t// }\r\n\t\t}\r\n\t}\r\n\r\n\trgb = texture2D(uSampler, vTextureCoord + explosions * .004 ).rgb * noise;\r\n\r\n\trgb = rgb * globalSinVal;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js":[function(require,module,exports){
 'use strict';
