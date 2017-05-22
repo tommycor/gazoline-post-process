@@ -41,13 +41,14 @@ module.exports = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uNoiseInfluence:	{ type: "f", 	value: .0 },
 			uResolution: 		{ type: "v2", 	value: new Vector2( this.width, this.height ) },
+			test: 		{ type: "v3v", 	value: [ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2 ] },
 			uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
 		this.filter = new PIXI.Filter( null, this.fragmentShader, this.gazolineUniforms);
-
+console.log(this.filter.uniforms.uInteractionsPos);
 		this.sprite.filters = [ this.filter ];
 
 		this.sprite.interactive = true;
