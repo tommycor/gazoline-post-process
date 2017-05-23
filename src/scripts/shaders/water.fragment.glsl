@@ -32,7 +32,6 @@ uniform float uInteractionsTime[ MAX_INT ];
 uniform vec3 uInteractionsPos[ MAX_INT ];
 uniform float uInteractionsPonderation[ MAX_INT ];
 uniform int uInteractionsIndex;
-uniform vec3 test[2];
 
 vec3 offset = vec3( 0., .1, .2);
 vec3 offsetWave = vec3( .4, .2, .0);
@@ -70,36 +69,73 @@ void main( void ) {
 		influenceTime = .0;
 		vitesse = 1.;
 
-		// if( uInteractionsPos[i].z != 100. ) {
-		// 	dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z;
+
+		if( uInteractionsPos[i].z != 100. ) {
+			dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z * 0.05;
 
 
-		// 	// if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {
-		// 	// 	influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
+			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {
+				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
 
-		// 	// 	// FADE OUT
-		// 	// 	influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
+				// FADE OUT
+				influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
 
-		// 	// 	if( influenceTime > .0 ) {
 
-		// 	// 		influence = influence * influenceTime ;
+				if( influenceTime > .0 ) {
 
-		// 	// 		if( influence > .0 )				 {
+					influence = influence * influenceTime ;
 
-		// 	// 			// HERE WE ONLY CALCULATE REAL WAVE
-		// 	// 			sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;
+					if( influence > .0 )				 {
 
-		// 	// 			sinVal = sinVal * influence;
-		// 	// 		}
-		// 	// 	}
-		// 	// }
-		// }
+						// HERE WE ONLY CALCULATE REAL WAVE
+						sinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;
+
+						sinVal = sinVal * influence;
+					}
+				}
+			}
+		}
+		else if( uInteractionsPos[i].z == 100. ) {
+			dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.05;
+
+			// INFLUENCE FROM DIST + SPAWNING 
+			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
+				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;
+
+				if( influence > 1. ) { 
+					influence = 1.;
+				}
+
+				// FADE OUT
+				influenceTime = ( uInteractionsTime[i] * -.3 + 1. );
+				// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );
+				
+				if( influenceTime > .0 ) {
+
+					influence = influence * influenceTime ;
+
+					// influence is gonna act on simili sombrero function
+					if( influence > .0 ) {
+
+						// HERE WE ONLY CALCULATE REAL WAVE
+						sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;
+
+						sinVal = sinVal * influence;
+					}
+				}
+			}
+		}
+
+		if( sinVal == vec3( .0 ) ) { continue; }
+
+		globalSinVal = globalSinVal + globalSinVal * sinVal;
+
+		explosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );
 	}
 
-	// rgb = texture2D(uSampler, vTextureCoord + explosions * .004 ).rgb * noise;
+	rgb = texture2D(uSampler, vTextureCoord + explosions * .0004 ).rgb * noise;
 
-	// rgb = rgb * globalSinVal;
-	rgb = test[1];
+	rgb = rgb * globalSinVal;
 
 	gl_FragColor = vec4( rgb, 1. );
 }

@@ -1,10 +1,11 @@
-import Vector2 from '../utils/Vector2';
-import Vector3 from '../utils/Vector3';
-import Vector4 from '../utils/Vector4';
+import Vector2 		from '../utils/Vector2';
+import Vector3 		from '../utils/Vector3';
+import Vector4 		from '../utils/Vector4';
 
-import config 				from '../utils/config';
-import raf 					from '../utils/raf';
-import mapper 				from '../utils/mapper';
+import config 		from '../utils/config';
+import raf 			from '../utils/raf';
+import mapper 		from '../utils/mapper';
+import serializer 	from '../utils/serializer';
 
 // var PIXI = require('pixi');
 
@@ -22,7 +23,7 @@ module.exports = {
 		this.interactionsTime 	= new Array();
 		this.interactionsIndex 	= 0;
 
-		for( let i = 0 ; i < config.maxInteractions ; i++ ) {
+		for( let i = 0 ; i < config.maxInteractions * 3 ; i++ ) {
 			this.interactionsPos[i]  = new Vector3( 0, 0, 0 );
 			this.interactionsTime[i] = 100;
 		}
@@ -30,7 +31,7 @@ module.exports = {
 		this.app 	   	= new PIXI.Application();
 		this.container 	= config.canvas.element;
 
-		this.renderer 	= new PIXI.autoDetectRenderer(this.container.offsetWidth, this.container.offsetHeight);
+		this.renderer 	= new PIXI.WebGLRenderer(this.container.offsetWidth, this.container.offsetHeight );
 
 		this.sprite 		= PIXI.Sprite.fromImage( config.textureURL );
 		this.sprite.width 	= this.app.renderer.width;
@@ -41,18 +42,17 @@ module.exports = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uNoiseInfluence:	{ type: "f", 	value: .0 },
 			uResolution: 		{ type: "v2", 	value: new Vector2( this.width, this.height ) },
-			test: 		{ type: "v3v", 	value: [ 0.1, 0.1, 0.1, 0.2, 0.2, 0.2 ] },
-			uInteractionsPos: 	{ type: 'v3v', 	value: this.interactionsPos },
+			uInteractionsPos: 	{ type: 'v3v', 	value: serializer( this.interactionsPos, 3) },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
 		};
 
 		this.filter = new PIXI.Filter( null, this.fragmentShader, this.gazolineUniforms);
-console.log(this.filter.uniforms.uInteractionsPos);
 		this.sprite.filters = [ this.filter ];
 
 		this.sprite.interactive = true;
 		this.sprite.on('pointermove', this.onMove);
+		this.sprite.on('pointerdown', this.onClick);
 
 		this.app.stage.addChild( this.sprite );
 		this.container.appendChild( this.app.view );
@@ -61,6 +61,7 @@ console.log(this.filter.uniforms.uInteractionsPos);
 	},
 
 	onClick: function( event ) {
+		this.addInteractionFromEvent( event, 100 );
 	},
 
 	onMove: function( event ) {
@@ -78,6 +79,7 @@ console.log(this.filter.uniforms.uInteractionsPos);
 
 	addInteractionFromEvent: function( event, ponderation ) {
 		let position = event.data.global;
+		position.y = this.sprite.height - position.y;
 
 		if( this.interactionsIndex > config.maxInteractions ) {
 			this.removeItem(0);
@@ -98,12 +100,12 @@ console.log(this.filter.uniforms.uInteractionsPos);
 		}
 
 
-		this.interactionsPos[ this.interactionsIndex ] = new Vector3( position.x, position.y, ponderation);
+		this.interactionsPos[ this.interactionsIndex ] 		= new Vector3( position.x, position.y, ponderation);
 		this.interactionsTime[ this.interactionsIndex ] = 0;
 		this.interactionsIndex++;
 		
 		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
-		this.filter.uniforms.uInteractionsPos = this.interactionsPos;
+		this.filter.uniforms.uInteractionsPos = serializer( this.interactionsPos, 3);
 	},
 
 	render: function( delta ) {
@@ -141,7 +143,7 @@ console.log(this.filter.uniforms.uInteractionsPos);
 		this.interactionsTime.push( 100 );
 
 		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
-		this.filter.uniforms.uInteractionsPos = this.interactionsPos;
+		this.filter.uniforms.uInteractionsPos = serializer( this.interactionsPos, 3);
 	},
 
 	updateVideo: function() {
