@@ -1,17 +1,17 @@
 
-#define MAX_DIST_1 15.
-#define MAX_DIST_2 25.
+#define MAX_DIST_1 7.
+#define MAX_DIST_2 10.
 #define MAX_Time 10.
 #define PI 3.1415926535
 #define PI_2 6.2831853071
 
-#define s_influenceSlope -.08
+#define s_influenceSlope -.1
 #define s_frequency 2.5
 #define s_amplitude .2
 #define s_waveLength .5
 #define s_shift .08
 
-#define b_influenceSlope -.08
+#define b_influenceSlope -.15
 #define b_frequency 4.
 #define b_amplitude 4.
 #define b_waveLength .2
@@ -71,7 +71,7 @@ void main( void ) {
 
 
 		if( uInteractionsPos[i].z != 100. ) {
-			dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z * 0.05;
+			dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z * 0.04;
 
 
 			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {
@@ -96,7 +96,7 @@ void main( void ) {
 			}
 		}
 		else if( uInteractionsPos[i].z == 100. ) {
-			dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.05;
+			dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.04;
 
 			// INFLUENCE FROM DIST + SPAWNING 
 			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {

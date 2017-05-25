@@ -3,7 +3,7 @@ import Vector2 from './Vector2';
 import Vector3 from './Vector3';
 import Vector4 from './Vector4';
 
-var config = {	
+module.exports = {	
 	canvas: {
 		element : document.getElementById('container'),
 		color : 0x000000
@@ -21,9 +21,9 @@ var config = {
 
 	greyscale: true,
 
-	useVideo: false,
+	useVideo: true,
 
-	textureURL: './assets/medias/test_2--text.jpg',
+	textureURL: './assets/medias/test_2.jpg',
 
 	maxInteractions: 250,
 
@@ -42,4 +42,3 @@ var config = {
 	minPonderation: .5
 }
 
-module.exports = config;

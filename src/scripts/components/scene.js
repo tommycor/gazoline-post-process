@@ -3,9 +3,10 @@ import Vector3 		from '../utils/Vector3';
 import Vector4 		from '../utils/Vector4';
 
 import config 		from '../utils/config';
-import raf 			from '../utils/raf';
 import mapper 		from '../utils/mapper';
 import serializer 	from '../utils/serializer';
+
+import Video 		from './Video';
 
 // var PIXI = require('pixi');
 
@@ -22,20 +23,18 @@ module.exports = {
 		this.interactionsPos 	= new Array();
 		this.interactionsTime 	= new Array();
 		this.interactionsIndex 	= 0;
+		this.container 			= config.canvas.element;
+		this.width 				= this.container.offsetWidth;
+		this.height 			= this.container.offsetHeight;
 
 		for( let i = 0 ; i < config.maxInteractions * 3 ; i++ ) {
 			this.interactionsPos[i]  = new Vector3( 0, 0, 0 );
 			this.interactionsTime[i] = 100;
 		}
 
-		this.app 	   	= new PIXI.Application();
-		this.container 	= config.canvas.element;
+		this.app = new PIXI.Application( this.width, this.height );
+		this.group = new PIXI.Container();
 
-		this.renderer 	= new PIXI.WebGLRenderer(this.container.offsetWidth, this.container.offsetHeight );
-
-		this.sprite 		= PIXI.Sprite.fromImage( config.textureURL );
-		this.sprite.width 	= this.app.renderer.width;
-		this.sprite.height 	= this.app.renderer.height;
 
 		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');;
 		this.gazolineUniforms = {
@@ -48,14 +47,28 @@ module.exports = {
 		};
 
 		this.filter = new PIXI.Filter( null, this.fragmentShader, this.gazolineUniforms);
-		this.sprite.filters = [ this.filter ];
+		this.group.filters = [ this.filter ];
 
-		this.sprite.interactive = true;
-		this.sprite.on('pointermove', this.onMove);
-		this.sprite.on('pointerdown', this.onClick);
+		this.sprite = PIXI.Sprite.fromImage( config.textureURL );
+		this.sprite.texture.baseTexture.on('loaded', this.onResize);
+		this.group.addChild( this.sprite );
 
-		this.app.stage.addChild( this.sprite );
+		if( config.useVideo ) {
+			this.spriteVideo = new Video();
+			this.group.addChild( this.spriteVideo.sprite );
+		}
+
+		this.group.interactive = true;
+		this.group.on('pointermove', this.onMove);
+		this.group.on('pointerdown', this.onClick);
+
+		this.app.stage.addChild( this.group );
 		this.container.appendChild( this.app.view );
+		window.addEventListener('resize', this.onResize);
+
+		setTimeout(()=>{
+			this.onResize();
+		}, 1000);
 
 		this.app.ticker.add( this.render );
 	},
@@ -75,6 +88,29 @@ module.exports = {
 	},
 
 	onResize: function() {
+		this.width 	= this.container.offsetWidth;
+		this.height = this.container.offsetHeight;
+
+		this.app.renderer.resize( this.width, this.height );
+
+		let imageRatio = this.sprite.width / this.sprite.height;
+		let containerRatio = this.width / this.height;
+
+		if(containerRatio > imageRatio) {
+		    this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
+		    this.sprite.width = this.width;
+		    this.sprite.position.x = 0;
+		    this.sprite.position.y = (this.height - this.sprite.height) / 2;
+		}else{
+		    this.sprite.width = this.sprite.width / (this.sprite.height / this.height);
+		    this.sprite.height = this.height;
+		    this.sprite.position.y = 0;
+		    this.sprite.position.x = (this.width - this.sprite.width) / 2;
+		}
+
+		if( config.useVideo ) {
+			this.spriteVideo.onResize( this.width, this.height );
+		}
 	},
 
 	addInteractionFromEvent: function( event, ponderation ) {
@@ -132,6 +168,10 @@ module.exports = {
 		this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
 
 		this.filter.uniforms.uInteractionsTime = this.interactionsTime;
+
+		if( config.useVideo ) {
+			this.spriteVideo.render();
+		}
 	},
 
 	removeItem: function( index ) {

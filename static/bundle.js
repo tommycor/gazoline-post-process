@@ -1,4 +1,88 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js":[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _utilsConfig = require('../utils/config');
+
+var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
+
+module.exports = (function () {
+	function Video(url) {
+		_classCallCheck(this, Video);
+
+		this.render = this.render.bind(this);
+		this.onResize = this.onResize.bind(this);
+
+		this.createVideo();
+
+		this.sprite = new PIXI.Sprite(PIXI.Texture.fromCanvas(this.videoImage));
+	}
+
+	_createClass(Video, [{
+		key: 'render',
+		value: function render() {
+			if (this.video.readyState === this.video.HAVE_ENOUGH_DATA) {
+				this.videoImageContext.drawImage(this.video, 0, 0);
+				this.sprite.texture.update();
+			}
+		}
+	}, {
+		key: 'createVideo',
+		value: function createVideo() {
+			this.video = document.createElement('video');
+			this.video.src = _utilsConfig2['default'].video.url;
+			this.video.load();
+			this.video.play();
+
+			this.videoImage = document.createElement('canvas');
+			this.videoImage.width = 1280;
+			this.videoImage.height = 720;
+
+			this.videoImageContext = this.videoImage.getContext('2d');
+			this.videoImageContext.fillStyle = '#000000';
+			this.videoImageContext.fillRect(0, 0, this.videoImage.width, this.videoImage.height);
+
+			// TO CHECK VIDEO PLAYING
+			this.videoImage.style.width = "160px";
+			this.videoImage.style.height = "90px";
+			this.videoImage.style.display = "block";
+			this.videoImage.style.position = "absolute";
+			this.videoImage.style.top = "0";
+			this.videoImage.style.left = "0";
+			document.body.appendChild(this.videoImage);
+		}
+	}, {
+		key: 'onResize',
+		value: function onResize(width, height) {
+			this.width = width;
+			this.height = height;
+
+			var imageRatio = this.sprite.width / this.sprite.height;
+			var containerRatio = this.width / this.height;
+
+			if (containerRatio > imageRatio) {
+				this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
+				this.sprite.width = this.width;
+				this.sprite.position.x = 0;
+				this.sprite.position.y = (this.height - this.sprite.height) / 2;
+			} else {
+				this.sprite.width = this.sprite.width / (this.sprite.height / this.height);
+				this.sprite.height = this.height;
+				this.sprite.position.y = 0;
+				this.sprite.position.x = (this.width - this.sprite.width) / 2;
+			}
+		}
+	}]);
+
+	return Video;
+})();
+
+},{"../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -19,10 +103,6 @@ var _utilsConfig = require('../utils/config');
 
 var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
 
-var _utilsRaf = require('../utils/raf');
-
-var _utilsRaf2 = _interopRequireDefault(_utilsRaf);
-
 var _utilsMapper = require('../utils/mapper');
 
 var _utilsMapper2 = _interopRequireDefault(_utilsMapper);
@@ -31,11 +111,17 @@ var _utilsSerializer = require('../utils/serializer');
 
 var _utilsSerializer2 = _interopRequireDefault(_utilsSerializer);
 
+var _Video = require('./Video');
+
+var _Video2 = _interopRequireDefault(_Video);
+
 // var PIXI = require('pixi');
 
 module.exports = {
 
 	init: function init() {
+		var _this = this;
+
 		this.render = this.render.bind(this);
 		this.onResize = this.onResize.bind(this);
 		this.onMove = this.onMove.bind(this);
@@ -46,20 +132,17 @@ module.exports = {
 		this.interactionsPos = new Array();
 		this.interactionsTime = new Array();
 		this.interactionsIndex = 0;
+		this.container = _utilsConfig2['default'].canvas.element;
+		this.width = this.container.offsetWidth;
+		this.height = this.container.offsetHeight;
 
 		for (var i = 0; i < _utilsConfig2['default'].maxInteractions * 3; i++) {
 			this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
 			this.interactionsTime[i] = 100;
 		}
 
-		this.app = new PIXI.Application();
-		this.container = _utilsConfig2['default'].canvas.element;
-
-		this.renderer = new PIXI.WebGLRenderer(this.container.offsetWidth, this.container.offsetHeight);
-
-		this.sprite = PIXI.Sprite.fromImage(_utilsConfig2['default'].textureURL);
-		this.sprite.width = this.app.renderer.width;
-		this.sprite.height = this.app.renderer.height;
+		this.app = new PIXI.Application(this.width, this.height);
+		this.group = new PIXI.Container();
 
 		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + _utilsConfig2['default'].maxInteractions + require('../shaders/water.fragment.glsl');;
 		this.gazolineUniforms = {
@@ -72,14 +155,28 @@ module.exports = {
 		};
 
 		this.filter = new PIXI.Filter(null, this.fragmentShader, this.gazolineUniforms);
-		this.sprite.filters = [this.filter];
+		this.group.filters = [this.filter];
 
-		this.sprite.interactive = true;
-		this.sprite.on('pointermove', this.onMove);
-		this.sprite.on('pointerdown', this.onClick);
+		this.sprite = PIXI.Sprite.fromImage(_utilsConfig2['default'].textureURL);
+		this.sprite.texture.baseTexture.on('loaded', this.onResize);
+		this.group.addChild(this.sprite);
 
-		this.app.stage.addChild(this.sprite);
+		if (_utilsConfig2['default'].useVideo) {
+			this.spriteVideo = new _Video2['default']();
+			this.group.addChild(this.spriteVideo.sprite);
+		}
+
+		this.group.interactive = true;
+		this.group.on('pointermove', this.onMove);
+		this.group.on('pointerdown', this.onClick);
+
+		this.app.stage.addChild(this.group);
 		this.container.appendChild(this.app.view);
+		window.addEventListener('resize', this.onResize);
+
+		setTimeout(function () {
+			_this.onResize();
+		}, 1000);
 
 		this.app.ticker.add(this.render);
 	},
@@ -96,7 +193,31 @@ module.exports = {
 
 	onMouseUp: function onMouseUp(event) {},
 
-	onResize: function onResize() {},
+	onResize: function onResize() {
+		this.width = this.container.offsetWidth;
+		this.height = this.container.offsetHeight;
+
+		this.app.renderer.resize(this.width, this.height);
+
+		var imageRatio = this.sprite.width / this.sprite.height;
+		var containerRatio = this.width / this.height;
+
+		if (containerRatio > imageRatio) {
+			this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
+			this.sprite.width = this.width;
+			this.sprite.position.x = 0;
+			this.sprite.position.y = (this.height - this.sprite.height) / 2;
+		} else {
+			this.sprite.width = this.sprite.width / (this.sprite.height / this.height);
+			this.sprite.height = this.height;
+			this.sprite.position.y = 0;
+			this.sprite.position.x = (this.width - this.sprite.width) / 2;
+		}
+
+		if (_utilsConfig2['default'].useVideo) {
+			this.spriteVideo.onResize(this.width, this.height);
+		}
+	},
 
 	addInteractionFromEvent: function addInteractionFromEvent(event, ponderation) {
 		var position = event.data.global;
@@ -151,6 +272,10 @@ module.exports = {
 		this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
 
 		this.filter.uniforms.uInteractionsTime = this.interactionsTime;
+
+		if (_utilsConfig2['default'].useVideo) {
+			this.spriteVideo.render();
+		}
 	},
 
 	removeItem: function removeItem(index) {
@@ -171,7 +296,7 @@ module.exports = {
 
 };
 
-},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/raf":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js","../utils/serializer":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
+},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/serializer":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js","./Video":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -189,7 +314,7 @@ window.onload = function () {
 module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
-module.exports = "\r\n#define MAX_DIST_1 15.\r\n#define MAX_DIST_2 25.\r\n#define MAX_Time 10.\r\n#define PI 3.1415926535\r\n#define PI_2 6.2831853071\r\n\r\n#define s_influenceSlope -.08\r\n#define s_frequency 2.5\r\n#define s_amplitude .2\r\n#define s_waveLength .5\r\n#define s_shift .08\r\n\r\n#define b_influenceSlope -.08\r\n#define b_frequency 4.\r\n#define b_amplitude 4.\r\n#define b_waveLength .2\r\n#define b_shift 1.\r\n\r\n\r\n\r\nuniform float uTime;\r\nuniform sampler2D uSampler;\r\nuniform vec2 uResolution;\r\nuniform sampler2D uTex;\r\n\r\nvarying vec2 vFilterCoord;\r\nvarying vec2 vTextureCoord;\r\nvarying vec4 vColor;\r\n\r\nuniform float uInteractionsTime[ MAX_INT ];\r\nuniform vec3 uInteractionsPos[ MAX_INT ];\r\nuniform float uInteractionsPonderation[ MAX_INT ];\r\nuniform int uInteractionsIndex;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 offsetWave = vec3( .4, .2, .0);\r\nvec3 noise \t= vec3(.0, .0, .0);\r\nvec3 rgb \t= vec3(.0, .0, .0);\r\nvec2 diff \t= vec2(.0, .0);\r\n\r\nvoid main( void ) {\r\n\r\n\tvec2 uvs = vTextureCoord.xy;\r\n\r\n\tnoise = vec3(\r\n\t\tsnoise( vec3( uvs * 2. + offset.r, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uvs * 2. + offset.g, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uvs * 2. + offset.b, uTime * .5 ) ) * .5 + 1.\r\n\t);\r\n\r\n\tvec3 globalSinVal = vec3( 1. );\r\n\tvec2 explosions = vec2( 0. );\r\n\r\n\tvec3 sinVal = vec3( .0 );\r\n\tfloat dist  = .0;\r\n\tfloat influence = .0;\r\n\tfloat influenceTime = .0;\r\n\tfloat vitesse = .0;\r\n\r\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t\tif( i >= uInteractionsIndex ) {\r\n\t\t\tbreak;\r\n\t\t}\r\n\r\n\t\tsinVal = vec3( .0 );\r\n\t\tdist = .0;\r\n\t\tinfluence = .0;\r\n\t\tinfluenceTime = .0;\r\n\t\tvitesse = 1.;\r\n\r\n\r\n\t\tif( uInteractionsPos[i].z != 100. ) {\r\n\t\t\tdist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z * 0.05;\r\n\r\n\r\n\t\t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {\r\n\t\t\t\tinfluence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;\r\n\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\tif( influence > .0 )\t\t\t\t {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\t\telse if( uInteractionsPos[i].z == 100. ) {\r\n\t\t\tdist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.05;\r\n\r\n\t\t\t// INFLUENCE FROM DIST + SPAWNING \r\n\t\t\tif( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {\r\n\t\t\t\tinfluence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;\r\n\r\n\t\t\t\tif( influence > 1. ) { \r\n\t\t\t\t\tinfluence = 1.;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.3 + 1. );\r\n\t\t\t\t// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );\r\n\t\t\t\t\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\t// influence is gonna act on simili sombrero function\r\n\t\t\t\t\tif( influence > .0 ) {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\tif( sinVal == vec3( .0 ) ) { continue; }\r\n\r\n\t\tglobalSinVal = globalSinVal + globalSinVal * sinVal;\r\n\r\n\t\texplosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t}\r\n\r\n\trgb = texture2D(uSampler, vTextureCoord + explosions * .0004 ).rgb * noise;\r\n\r\n\trgb = rgb * globalSinVal;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
+module.exports = "\r\n#define MAX_DIST_1 7.\r\n#define MAX_DIST_2 10.\r\n#define MAX_Time 10.\r\n#define PI 3.1415926535\r\n#define PI_2 6.2831853071\r\n\r\n#define s_influenceSlope -.1\r\n#define s_frequency 2.5\r\n#define s_amplitude .2\r\n#define s_waveLength .5\r\n#define s_shift .08\r\n\r\n#define b_influenceSlope -.15\r\n#define b_frequency 4.\r\n#define b_amplitude 4.\r\n#define b_waveLength .2\r\n#define b_shift 1.\r\n\r\n\r\n\r\nuniform float uTime;\r\nuniform sampler2D uSampler;\r\nuniform vec2 uResolution;\r\nuniform sampler2D uTex;\r\n\r\nvarying vec2 vFilterCoord;\r\nvarying vec2 vTextureCoord;\r\nvarying vec4 vColor;\r\n\r\nuniform float uInteractionsTime[ MAX_INT ];\r\nuniform vec3 uInteractionsPos[ MAX_INT ];\r\nuniform float uInteractionsPonderation[ MAX_INT ];\r\nuniform int uInteractionsIndex;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 offsetWave = vec3( .4, .2, .0);\r\nvec3 noise \t= vec3(.0, .0, .0);\r\nvec3 rgb \t= vec3(.0, .0, .0);\r\nvec2 diff \t= vec2(.0, .0);\r\n\r\nvoid main( void ) {\r\n\r\n\tvec2 uvs = vTextureCoord.xy;\r\n\r\n\tnoise = vec3(\r\n\t\tsnoise( vec3( uvs * 2. + offset.r, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uvs * 2. + offset.g, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uvs * 2. + offset.b, uTime * .5 ) ) * .5 + 1.\r\n\t);\r\n\r\n\tvec3 globalSinVal = vec3( 1. );\r\n\tvec2 explosions = vec2( 0. );\r\n\r\n\tvec3 sinVal = vec3( .0 );\r\n\tfloat dist  = .0;\r\n\tfloat influence = .0;\r\n\tfloat influenceTime = .0;\r\n\tfloat vitesse = .0;\r\n\r\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t\tif( i >= uInteractionsIndex ) {\r\n\t\t\tbreak;\r\n\t\t}\r\n\r\n\t\tsinVal = vec3( .0 );\r\n\t\tdist = .0;\r\n\t\tinfluence = .0;\r\n\t\tinfluenceTime = .0;\r\n\t\tvitesse = 1.;\r\n\r\n\r\n\t\tif( uInteractionsPos[i].z != 100. ) {\r\n\t\t\tdist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) / uInteractionsPos[i].z * 0.04;\r\n\r\n\r\n\t\t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 / uInteractionsPos[i].z ) {\r\n\t\t\t\tinfluence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;\r\n\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\tif( influence > .0 )\t\t\t\t {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\t\telse if( uInteractionsPos[i].z == 100. ) {\r\n\t\t\tdist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.04;\r\n\r\n\t\t\t// INFLUENCE FROM DIST + SPAWNING \r\n\t\t\tif( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {\r\n\t\t\t\tinfluence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;\r\n\r\n\t\t\t\tif( influence > 1. ) { \r\n\t\t\t\t\tinfluence = 1.;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.3 + 1. );\r\n\t\t\t\t// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );\r\n\t\t\t\t\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\t// influence is gonna act on simili sombrero function\r\n\t\t\t\t\tif( influence > .0 ) {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\tif( sinVal == vec3( .0 ) ) { continue; }\r\n\r\n\t\tglobalSinVal = globalSinVal + globalSinVal * sinVal;\r\n\r\n\t\texplosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t}\r\n\r\n\trgb = texture2D(uSampler, vTextureCoord + explosions * .0004 ).rgb * noise;\r\n\r\n\trgb = rgb * globalSinVal;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js":[function(require,module,exports){
 'use strict';
@@ -1958,7 +2083,7 @@ var _Vector4 = require('./Vector4');
 
 var _Vector42 = _interopRequireDefault(_Vector4);
 
-var config = {
+module.exports = {
 	canvas: {
 		element: document.getElementById('container'),
 		color: 0x000000
@@ -1976,9 +2101,9 @@ var config = {
 
 	greyscale: true,
 
-	useVideo: false,
+	useVideo: true,
 
-	textureURL: './assets/medias/test_2--text.jpg',
+	textureURL: './assets/medias/test_2.jpg',
 
 	maxInteractions: 250,
 
@@ -1997,8 +2122,6 @@ var config = {
 	minPonderation: .5
 };
 
-module.exports = config;
-
 },{"./Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","./Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","./Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js":[function(require,module,exports){
 // https://github.com/tommycor/mapperJS/blob/master/mapper-min.js
 "use strict";
@@ -2008,55 +2131,6 @@ function mapper(val, oMin, oMax, nMin, nMax) {
 }
 
 module.exports = mapper;
-
-},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\raf.js":[function(require,module,exports){
-'use strict';
-
-function Raf() {
-
-	this.loop = this.loop.bind(this);
-	this.start = this.start.bind(this);
-	this.stop = this.stop.bind(this);
-	this.control = this.control.bind(this);
-
-	this.toRefresh = [];
-
-	window.addEventListener('keydown', this.control);
-}
-
-Raf.prototype.register = function (callback) {
-
-	this.toRefresh.push(callback);
-};
-
-Raf.prototype.start = function () {
-
-	this.loop();
-};
-
-Raf.prototype.stop = function () {
-
-	cancelAnimationFrame(this.request);
-};
-
-Raf.prototype.loop = function () {
-
-	var i;
-	for (i = 0; i < this.toRefresh.length; i++) {
-		this.toRefresh[i]();
-	}
-
-	this.request = requestAnimationFrame(this.start);
-};
-
-Raf.prototype.control = function (event) {
-	if (event.keyCode === 0 || event.keyCode === 32) {
-
-		if (this.request != null) this.stop();else this.start();
-	}
-};
-
-module.exports = new Raf();
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js":[function(require,module,exports){
 'use strict';
