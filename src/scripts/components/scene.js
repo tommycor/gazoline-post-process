@@ -7,6 +7,7 @@ import mapper 		from '../utils/mapper';
 import serializer 	from '../utils/serializer';
 
 import Video 		from './Video';
+import Text 		from './Text';
 
 // var PIXI = require('pixi');
 
@@ -24,8 +25,8 @@ module.exports = {
 		this.interactionsTime 	= new Array();
 		this.interactionsIndex 	= 0;
 		this.container 			= config.canvas.element;
-		this.width 				= this.container.offsetWidth;
-		this.height 			= this.container.offsetHeight;
+		this.width 				= this.container.offsetWidth / config.scale;
+		this.height 			= this.container.offsetHeight / config.scale;
 
 		for( let i = 0 ; i < config.maxInteractions * 3 ; i++ ) {
 			this.interactionsPos[i]  = new Vector3( 0, 0, 0 );
@@ -58,6 +59,11 @@ module.exports = {
 			this.group.addChild( this.spriteVideo.sprite );
 		}
 
+		if( config.text != void 0 && config.text != '' ) {
+			this.spriteText = new Text();
+			this.group.addChild( this.spriteText.text );
+		}
+
 		this.group.interactive = true;
 		this.group.on('pointermove', this.onMove);
 		this.group.on('pointerdown', this.onClick);
@@ -88,13 +94,16 @@ module.exports = {
 	},
 
 	onResize: function() {
-		this.width 	= this.container.offsetWidth;
-		this.height = this.container.offsetHeight;
+		this.width 	= this.container.offsetWidth / config.scale;
+		this.height = this.container.offsetHeight / config.scale;
 
 		this.app.renderer.resize( this.width, this.height );
 
+		this.app.view.style.transform = 'scale(' + config.scale + ')';
+		this.app.view.style.transformOrigin = '0 0';
+
 		let imageRatio = this.sprite.width / this.sprite.height;
-		let containerRatio = this.width / this.height;
+		let containerRatio = this.width / config.scale / this.height;
 
 		if(containerRatio > imageRatio) {
 		    this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
@@ -109,7 +118,11 @@ module.exports = {
 		}
 
 		if( config.useVideo ) {
-			this.spriteVideo.onResize( this.width, this.height );
+			this.spriteVideo.onResize( this.width / config.scale, this.height / config.scale );
+		}
+
+		if( config.text != void 0 && config.text != '' ) {
+			this.spriteText.onResize( this.width, this.height );
 		}
 	},
 
