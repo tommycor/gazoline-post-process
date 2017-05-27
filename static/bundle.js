@@ -1,4 +1,52 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Text.js":[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _utilsConfig = require('../utils/config');
+
+var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
+
+module.exports = (function () {
+	function Text() {
+		_classCallCheck(this, Text);
+
+		this.onResize = this.onResize.bind(this);
+
+		this.textStyle = new PIXI.TextStyle({
+			fontFamily: 'Arial',
+			fontSize: 36,
+			fontWeight: 'bold',
+			fill: '#000000',
+			wordWrap: true,
+			wordWrapWidth: 440
+		});
+
+		this.text = new PIXI.Text(_utilsConfig2['default'].text, this.textStyle);
+		this.text.anchor.set(0.5, 0.5);
+	}
+
+	_createClass(Text, [{
+		key: 'onResize',
+		value: function onResize(width, height) {
+			this.width = width;
+			this.height = height;
+
+			this.text.x = this.width * .5;
+			this.text.y = this.height * .5;
+
+			this.textStyle.wordWrapWidth = this.width * .9;
+		}
+	}]);
+
+	return Text;
+})();
+
+},{"../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js":[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -115,6 +163,10 @@ var _Video = require('./Video');
 
 var _Video2 = _interopRequireDefault(_Video);
 
+var _Text = require('./Text');
+
+var _Text2 = _interopRequireDefault(_Text);
+
 // var PIXI = require('pixi');
 
 module.exports = {
@@ -133,8 +185,8 @@ module.exports = {
 		this.interactionsTime = new Array();
 		this.interactionsIndex = 0;
 		this.container = _utilsConfig2['default'].canvas.element;
-		this.width = this.container.offsetWidth;
-		this.height = this.container.offsetHeight;
+		this.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
+		this.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
 
 		for (var i = 0; i < _utilsConfig2['default'].maxInteractions * 3; i++) {
 			this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
@@ -166,6 +218,11 @@ module.exports = {
 			this.group.addChild(this.spriteVideo.sprite);
 		}
 
+		if (_utilsConfig2['default'].text != void 0 && _utilsConfig2['default'].text != '') {
+			this.spriteText = new _Text2['default']();
+			this.group.addChild(this.spriteText.text);
+		}
+
 		this.group.interactive = true;
 		this.group.on('pointermove', this.onMove);
 		this.group.on('pointerdown', this.onClick);
@@ -194,13 +251,16 @@ module.exports = {
 	onMouseUp: function onMouseUp(event) {},
 
 	onResize: function onResize() {
-		this.width = this.container.offsetWidth;
-		this.height = this.container.offsetHeight;
+		this.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
+		this.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
 
 		this.app.renderer.resize(this.width, this.height);
 
+		this.app.view.style.transform = 'scale(' + _utilsConfig2['default'].scale + ')';
+		this.app.view.style.transformOrigin = '0 0';
+
 		var imageRatio = this.sprite.width / this.sprite.height;
-		var containerRatio = this.width / this.height;
+		var containerRatio = this.width / _utilsConfig2['default'].scale / this.height;
 
 		if (containerRatio > imageRatio) {
 			this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
@@ -216,6 +276,10 @@ module.exports = {
 
 		if (_utilsConfig2['default'].useVideo) {
 			this.spriteVideo.onResize(this.width, this.height);
+		}
+
+		if (_utilsConfig2['default'].text != void 0 && _utilsConfig2['default'].text != '') {
+			this.spriteText.onResize(this.width, this.height);
 		}
 	},
 
@@ -296,7 +360,7 @@ module.exports = {
 
 };
 
-},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/serializer":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js","./Video":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
+},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/serializer":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js","./Text":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Text.js","./Video":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -2106,6 +2170,8 @@ module.exports = {
 	textureURL: './assets/medias/test_2.jpg',
 
 	maxInteractions: 250,
+
+	text: 'I am banana',
 
 	video: {
 		url: './assets/medias/test_video.mp4'

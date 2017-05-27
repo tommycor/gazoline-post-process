@@ -27,6 +27,8 @@ module.exports = {
 
 	maxInteractions: 250,
 
+	text: 'I am banana',
+
 	video: {
 		url: './assets/medias/test_video.mp4',
 	},

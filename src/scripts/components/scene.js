@@ -118,7 +118,7 @@ module.exports = {
 		}
 
 		if( config.useVideo ) {
-			this.spriteVideo.onResize( this.width / config.scale, this.height / config.scale );
+			this.spriteVideo.onResize( this.width, this.height );
 		}
 
 		if( config.text != void 0 && config.text != '' ) {
