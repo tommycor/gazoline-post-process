@@ -1,4 +1,246 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Text.js":[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Scene.js":[function(require,module,exports){
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _utilsVector2 = require('../utils/Vector2');
+
+var _utilsVector22 = _interopRequireDefault(_utilsVector2);
+
+var _utilsVector3 = require('../utils/Vector3');
+
+var _utilsVector32 = _interopRequireDefault(_utilsVector3);
+
+var _utilsVector4 = require('../utils/Vector4');
+
+var _utilsVector42 = _interopRequireDefault(_utilsVector4);
+
+var _utilsConfig = require('../utils/config');
+
+var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
+
+var _utilsMapper = require('../utils/mapper');
+
+var _utilsMapper2 = _interopRequireDefault(_utilsMapper);
+
+var _utilsSerializer = require('../utils/serializer');
+
+var _utilsSerializer2 = _interopRequireDefault(_utilsSerializer);
+
+var _Video = require('./Video');
+
+var _Video2 = _interopRequireDefault(_Video);
+
+var _Text = require('./Text');
+
+var _Text2 = _interopRequireDefault(_Text);
+
+// var PIXI = require('pixi');
+
+module.exports = (function () {
+	function Scene() {
+		var _this = this;
+
+		_classCallCheck(this, Scene);
+
+		this.render = this.render.bind(this);
+		this.onResize = this.onResize.bind(this);
+		this.onMove = this.onMove.bind(this);
+		this.onClick = this.onClick.bind(this);
+		this.onMouseDown = this.onMouseDown.bind(this);
+		this.onMouseUp = this.onMouseUp.bind(this);
+
+		this.interactionsPos = new Array();
+		this.interactionsTime = new Array();
+		this.interactionsIndex = 0;
+		this.container = _utilsConfig2['default'].canvas.element;
+		this.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
+		this.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
+
+		for (var i = 0; i < _utilsConfig2['default'].maxInteractions * 3; i++) {
+			this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
+			this.interactionsTime[i] = 100;
+		}
+
+		this.app = new PIXI.Application(this.width, this.height);
+		this.group = new PIXI.Container();
+
+		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + _utilsConfig2['default'].maxInteractions + require('../shaders/water.fragment.glsl');;
+		this.gazolineUniforms = {
+			uTime: { type: "f", value: .0 },
+			uNoiseInfluence: { type: "f", value: .0 },
+			uResolution: { type: "v2", value: new _utilsVector22['default'](this.width, this.height) },
+			uInteractionsPos: { type: 'v3v', value: (0, _utilsSerializer2['default'])(this.interactionsPos, 3) },
+			uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
+			uInteractionsIndex: { type: 'i', value: this.interactionsIndex }
+		};
+
+		this.filter = new PIXI.Filter(null, this.fragmentShader, this.gazolineUniforms);
+		this.group.filters = [this.filter];
+
+		this.sprite = PIXI.Sprite.fromImage(_utilsConfig2['default'].textureURL);
+		this.sprite.texture.baseTexture.on('loaded', this.onResize);
+		this.group.addChild(this.sprite);
+
+		if (_utilsConfig2['default'].useVideo) {
+			this.spriteVideo = new _Video2['default']();
+			this.group.addChild(this.spriteVideo.sprite);
+		}
+
+		if (_utilsConfig2['default'].text != void 0 && _utilsConfig2['default'].text != '') {
+			this.spriteText = new _Text2['default']();
+			this.group.addChild(this.spriteText.text);
+		}
+
+		this.group.interactive = true;
+		this.group.on('pointermove', this.onMove);
+		this.group.on('pointerdown', this.onClick);
+
+		this.app.stage.addChild(this.group);
+		this.container.appendChild(this.app.view);
+		window.addEventListener('resize', this.onResize);
+
+		setTimeout(function () {
+			_this.onResize();
+		}, 1000);
+
+		this.app.ticker.add(this.render);
+	}
+
+	_createClass(Scene, [{
+		key: 'onClick',
+		value: function onClick(event) {
+			this.addInteractionFromEvent(event, 100);
+		}
+	}, {
+		key: 'onMove',
+		value: function onMove(event) {
+			this.addInteractionFromEvent(event, this.isCapting ? 100 : 1);
+		}
+	}, {
+		key: 'onMouseDown',
+		value: function onMouseDown(event) {}
+	}, {
+		key: 'onMouseUp',
+		value: function onMouseUp(event) {}
+	}, {
+		key: 'onResize',
+		value: function onResize() {
+			this.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
+			this.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
+
+			this.app.renderer.resize(this.width, this.height);
+
+			this.app.view.style.transform = 'scale(' + _utilsConfig2['default'].scale + ')';
+			this.app.view.style.transformOrigin = '0 0';
+
+			var imageRatio = this.sprite.width / this.sprite.height;
+			var containerRatio = this.width / _utilsConfig2['default'].scale / this.height;
+
+			if (containerRatio > imageRatio) {
+				this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
+				this.sprite.width = this.width;
+				this.sprite.position.x = 0;
+				this.sprite.position.y = (this.height - this.sprite.height) / 2;
+			} else {
+				this.sprite.width = this.sprite.width / (this.sprite.height / this.height);
+				this.sprite.height = this.height;
+				this.sprite.position.y = 0;
+				this.sprite.position.x = (this.width - this.sprite.width) / 2;
+			}
+
+			if (_utilsConfig2['default'].useVideo) {
+				this.spriteVideo.onResize(this.width, this.height);
+			}
+
+			if (_utilsConfig2['default'].text != void 0 && _utilsConfig2['default'].text != '') {
+				this.spriteText.onResize(this.width, this.height);
+			}
+		}
+	}, {
+		key: 'addInteractionFromEvent',
+		value: function addInteractionFromEvent(event, ponderation) {
+			var position = event.data.global;
+			position.y = this.sprite.height - position.y;
+
+			if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
+				this.removeItem(0);
+			}
+
+			if (ponderation != 100) {
+				if (this.interactionsIndex > 0) {
+					var delta = new _utilsVector22['default'](position.x, position.y).distanceTo(new _utilsVector22['default'](this.interactionsPos[this.interactionsIndex - 1].x, this.interactionsPos[this.interactionsIndex - 1].y));
+					ponderation = 1 - delta * .5;
+
+					if (ponderation < _utilsConfig2['default'].minPonderation) {
+						ponderation = _utilsConfig2['default'].minPonderation;
+					}
+				} else {
+					ponderation = 1;
+				}
+			}
+
+			this.interactionsPos[this.interactionsIndex] = new _utilsVector32['default'](position.x, position.y, ponderation);
+			this.interactionsTime[this.interactionsIndex] = 0;
+			this.interactionsIndex++;
+
+			this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
+			this.filter.uniforms.uInteractionsPos = (0, _utilsSerializer2['default'])(this.interactionsPos, 3);
+		}
+	}, {
+		key: 'render',
+		value: function render(delta) {
+			delta *= .01;
+
+			this.filter.uniforms.uTime += delta;
+
+			for (var i = 0; i < this.interactionsIndex; i++) {
+				this.interactionsTime[i] += delta;
+
+				// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
+				if (this.interactionsPos[i].z != 100) {
+					if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
+						this.removeItem(i);
+					}
+				}
+				if (this.interactionsPos[i].z == 100) {
+					if (this.interactionsTime[i] > 5 && this.interactionsTime[i] < 50) {
+						this.removeItem(i);
+					}
+				}
+			}
+
+			this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
+
+			this.filter.uniforms.uInteractionsTime = this.interactionsTime;
+
+			if (_utilsConfig2['default'].useVideo) {
+				this.spriteVideo.render();
+			}
+		}
+	}, {
+		key: 'removeItem',
+		value: function removeItem(index) {
+			this.interactionsTime.splice(index, 1);
+			this.interactionsPos.splice(index, 1);
+			this.interactionsIndex--;
+
+			this.interactionsPos.push(new _utilsVector22['default'](0, 0, 0));
+			this.interactionsTime.push(100);
+
+			this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
+			this.filter.uniforms.uInteractionsPos = (0, _utilsSerializer2['default'])(this.interactionsPos, 3);
+		}
+	}]);
+
+	return Scene;
+})();
+
+},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/serializer":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js","./Text":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Text.js","./Video":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Text.js":[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -102,7 +344,7 @@ module.exports = (function () {
 			this.videoImage.style.position = "absolute";
 			this.videoImage.style.top = "0";
 			this.videoImage.style.left = "0";
-			document.body.appendChild(this.videoImage);
+			// document.body.appendChild( this.videoImage );
 		}
 	}, {
 		key: 'onResize',
@@ -130,251 +372,30 @@ module.exports = (function () {
 	return Video;
 })();
 
-},{"../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js":[function(require,module,exports){
+},{"../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-var _utilsVector2 = require('../utils/Vector2');
-
-var _utilsVector22 = _interopRequireDefault(_utilsVector2);
-
-var _utilsVector3 = require('../utils/Vector3');
-
-var _utilsVector32 = _interopRequireDefault(_utilsVector3);
-
-var _utilsVector4 = require('../utils/Vector4');
-
-var _utilsVector42 = _interopRequireDefault(_utilsVector4);
-
-var _utilsConfig = require('../utils/config');
-
-var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
-
-var _utilsMapper = require('../utils/mapper');
-
-var _utilsMapper2 = _interopRequireDefault(_utilsMapper);
-
-var _utilsSerializer = require('../utils/serializer');
-
-var _utilsSerializer2 = _interopRequireDefault(_utilsSerializer);
-
-var _Video = require('./Video');
-
-var _Video2 = _interopRequireDefault(_Video);
-
-var _Text = require('./Text');
-
-var _Text2 = _interopRequireDefault(_Text);
-
-// var PIXI = require('pixi');
-
-module.exports = {
-
-	init: function init() {
-		var _this = this;
-
-		this.render = this.render.bind(this);
-		this.onResize = this.onResize.bind(this);
-		this.onMove = this.onMove.bind(this);
-		this.onClick = this.onClick.bind(this);
-		this.onMouseDown = this.onMouseDown.bind(this);
-		this.onMouseUp = this.onMouseUp.bind(this);
-
-		this.interactionsPos = new Array();
-		this.interactionsTime = new Array();
-		this.interactionsIndex = 0;
-		this.container = _utilsConfig2['default'].canvas.element;
-		this.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
-		this.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
-
-		for (var i = 0; i < _utilsConfig2['default'].maxInteractions * 3; i++) {
-			this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
-			this.interactionsTime[i] = 100;
-		}
-
-		this.app = new PIXI.Application(this.width, this.height);
-		this.group = new PIXI.Container();
-
-		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + _utilsConfig2['default'].maxInteractions + require('../shaders/water.fragment.glsl');;
-		this.gazolineUniforms = {
-			uTime: { type: "f", value: .0 },
-			uNoiseInfluence: { type: "f", value: .0 },
-			uResolution: { type: "v2", value: new _utilsVector22['default'](this.width, this.height) },
-			uInteractionsPos: { type: 'v3v', value: (0, _utilsSerializer2['default'])(this.interactionsPos, 3) },
-			uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
-			uInteractionsIndex: { type: 'i', value: this.interactionsIndex }
-		};
-
-		this.filter = new PIXI.Filter(null, this.fragmentShader, this.gazolineUniforms);
-		this.group.filters = [this.filter];
-
-		this.sprite = PIXI.Sprite.fromImage(_utilsConfig2['default'].textureURL);
-		this.sprite.texture.baseTexture.on('loaded', this.onResize);
-		this.group.addChild(this.sprite);
-
-		if (_utilsConfig2['default'].useVideo) {
-			this.spriteVideo = new _Video2['default']();
-			this.group.addChild(this.spriteVideo.sprite);
-		}
-
-		if (_utilsConfig2['default'].text != void 0 && _utilsConfig2['default'].text != '') {
-			this.spriteText = new _Text2['default']();
-			this.group.addChild(this.spriteText.text);
-		}
-
-		this.group.interactive = true;
-		this.group.on('pointermove', this.onMove);
-		this.group.on('pointerdown', this.onClick);
-
-		this.app.stage.addChild(this.group);
-		this.container.appendChild(this.app.view);
-		window.addEventListener('resize', this.onResize);
-
-		setTimeout(function () {
-			_this.onResize();
-		}, 1000);
-
-		this.app.ticker.add(this.render);
-	},
-
-	onClick: function onClick(event) {
-		this.addInteractionFromEvent(event, 100);
-	},
-
-	onMove: function onMove(event) {
-		this.addInteractionFromEvent(event, this.isCapting ? 100 : 1);
-	},
-
-	onMouseDown: function onMouseDown(event) {},
-
-	onMouseUp: function onMouseUp(event) {},
-
-	onResize: function onResize() {
-		this.width = this.container.offsetWidth / _utilsConfig2['default'].scale;
-		this.height = this.container.offsetHeight / _utilsConfig2['default'].scale;
-
-		this.app.renderer.resize(this.width, this.height);
-
-		this.app.view.style.transform = 'scale(' + _utilsConfig2['default'].scale + ')';
-		this.app.view.style.transformOrigin = '0 0';
-
-		var imageRatio = this.sprite.width / this.sprite.height;
-		var containerRatio = this.width / _utilsConfig2['default'].scale / this.height;
-
-		if (containerRatio > imageRatio) {
-			this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
-			this.sprite.width = this.width;
-			this.sprite.position.x = 0;
-			this.sprite.position.y = (this.height - this.sprite.height) / 2;
-		} else {
-			this.sprite.width = this.sprite.width / (this.sprite.height / this.height);
-			this.sprite.height = this.height;
-			this.sprite.position.y = 0;
-			this.sprite.position.x = (this.width - this.sprite.width) / 2;
-		}
-
-		if (_utilsConfig2['default'].useVideo) {
-			this.spriteVideo.onResize(this.width, this.height);
-		}
-
-		if (_utilsConfig2['default'].text != void 0 && _utilsConfig2['default'].text != '') {
-			this.spriteText.onResize(this.width, this.height);
-		}
-	},
-
-	addInteractionFromEvent: function addInteractionFromEvent(event, ponderation) {
-		var position = event.data.global;
-		position.y = this.sprite.height - position.y;
-
-		if (this.interactionsIndex > _utilsConfig2['default'].maxInteractions) {
-			this.removeItem(0);
-		}
-
-		if (ponderation != 100) {
-			if (this.interactionsIndex > 0) {
-				var delta = new _utilsVector22['default'](position.x, position.y).distanceTo(new _utilsVector22['default'](this.interactionsPos[this.interactionsIndex - 1].x, this.interactionsPos[this.interactionsIndex - 1].y));
-				ponderation = 1 - delta * .5;
-
-				if (ponderation < _utilsConfig2['default'].minPonderation) {
-					ponderation = _utilsConfig2['default'].minPonderation;
-				}
-			} else {
-				ponderation = 1;
-			}
-		}
-
-		this.interactionsPos[this.interactionsIndex] = new _utilsVector32['default'](position.x, position.y, ponderation);
-		this.interactionsTime[this.interactionsIndex] = 0;
-		this.interactionsIndex++;
-
-		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
-		this.filter.uniforms.uInteractionsPos = (0, _utilsSerializer2['default'])(this.interactionsPos, 3);
-	},
-
-	render: function render(delta) {
-		delta *= .01;
-
-		this.filter.uniforms.uTime += delta;
-
-		for (var i = 0; i < this.interactionsIndex; i++) {
-			this.interactionsTime[i] += delta;
-
-			// GARBAGE COLLECTOR FOR INTERACTIONS ARRAYS
-			if (this.interactionsPos[i].z != 100) {
-				if (this.interactionsTime[i] > 3 && this.interactionsTime[i] < 50) {
-					this.removeItem(i);
-				}
-			}
-			if (this.interactionsPos[i].z == 100) {
-				if (this.interactionsTime[i] > 5 && this.interactionsTime[i] < 50) {
-					this.removeItem(i);
-				}
-			}
-		}
-
-		this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
-
-		this.filter.uniforms.uInteractionsTime = this.interactionsTime;
-
-		if (_utilsConfig2['default'].useVideo) {
-			this.spriteVideo.render();
-		}
-	},
-
-	removeItem: function removeItem(index) {
-		this.interactionsTime.splice(index, 1);
-		this.interactionsPos.splice(index, 1);
-		this.interactionsIndex--;
-
-		this.interactionsPos.push(new _utilsVector22['default'](0, 0, 0));
-		this.interactionsTime.push(100);
-
-		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
-		this.filter.uniforms.uInteractionsPos = (0, _utilsSerializer2['default'])(this.interactionsPos, 3);
-	},
-
-	updateVideo: function updateVideo() {},
-
-	createVideo: function createVideo() {}
-
-};
-
-},{"../shaders/noises/noise3D.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl","../shaders/water.fragment.glsl":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl","../utils/Vector2":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js","../utils/Vector3":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector3.js","../utils/Vector4":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector4.js","../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js","../utils/mapper":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\mapper.js","../utils/serializer":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\serializer.js","./Text":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Text.js","./Video":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
-'use strict';
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-var _componentsScene = require('./components/scene');
+var _componentsScene = require('./components/Scene');
 
 var _componentsScene2 = _interopRequireDefault(_componentsScene);
 
 window.onload = function () {
 
-	_componentsScene2['default'].init();
+	var items = document.querySelectorAll('.js-gazoline');
+	var exp = new Array();
+
+	if (items == void 0 || items.length == 0) {
+		return;
+	}
+
+	for (var i = 0; i < items.length; i++) {
+		exp.push(new _componentsScene2['default'](items[i]));
+	}
 };
 
-},{"./components/scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl":[function(require,module,exports){
+},{"./components/Scene":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Scene.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\noises\\noise3D.glsl":[function(require,module,exports){
 module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){

@@ -38,7 +38,7 @@ module.exports =  class Video {
 		this.videoImage.style.position = "absolute";
 		this.videoImage.style.top = "0";
 		this.videoImage.style.left = "0";
-		document.body.appendChild( this.videoImage );
+		// document.body.appendChild( this.videoImage );
 	}
 
 	onResize( width, height ) {

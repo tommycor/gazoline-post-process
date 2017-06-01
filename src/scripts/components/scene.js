@@ -11,9 +11,9 @@ import Text 		from './Text';
 
 // var PIXI = require('pixi');
 
-module.exports = {
+module.exports = class Scene{
 
-	init: function() {
+	constructor() {
 		this.render  	= this.render.bind(this);
 		this.onResize	= this.onResize.bind(this);
 		this.onMove		= this.onMove.bind(this);
@@ -77,23 +77,23 @@ module.exports = {
 		}, 1000);
 
 		this.app.ticker.add( this.render );
-	},
+	}
 
-	onClick: function( event ) {
+	onClick( event ) {
 		this.addInteractionFromEvent( event, 100 );
-	},
+	}
 
-	onMove: function( event ) {
+	onMove( event ) {
 		this.addInteractionFromEvent( event, this.isCapting ? 100 : 1 );
-	},
+	}
 
-	onMouseDown: function( event ) {
-	},
+	onMouseDown( event ) {
+	}
 
-	onMouseUp: function( event ) {
-	},
+	onMouseUp( event ) {
+	}
 
-	onResize: function() {
+	onResize() {
 		this.width 	= this.container.offsetWidth / config.scale;
 		this.height = this.container.offsetHeight / config.scale;
 
@@ -124,9 +124,9 @@ module.exports = {
 		if( config.text != void 0 && config.text != '' ) {
 			this.spriteText.onResize( this.width, this.height );
 		}
-	},
+	}
 
-	addInteractionFromEvent: function( event, ponderation ) {
+	addInteractionFromEvent( event, ponderation ) {
 		let position = event.data.global;
 		position.y = this.sprite.height - position.y;
 
@@ -155,9 +155,9 @@ module.exports = {
 		
 		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
 		this.filter.uniforms.uInteractionsPos = serializer( this.interactionsPos, 3);
-	},
+	}
 
-	render: function( delta ) {
+	render( delta ) {
 		delta *= .01;
 
 		this.filter.uniforms.uTime += delta;
@@ -185,9 +185,9 @@ module.exports = {
 		if( config.useVideo ) {
 			this.spriteVideo.render();
 		}
-	},
+	}
 
-	removeItem: function( index ) {
+	removeItem( index ) {
 		this.interactionsTime.splice( index, 1)
 		this.interactionsPos.splice( index, 1);
 		this.interactionsIndex--;
@@ -197,12 +197,6 @@ module.exports = {
 
 		this.filter.uniforms.uInteractionsIndex = this.interactionsIndex;
 		this.filter.uniforms.uInteractionsPos = serializer( this.interactionsPos, 3);
-	},
-
-	updateVideo: function() {
-	},
-
-	createVideo: function() {
 	}
 
 };
