@@ -11,5 +11,4 @@ window.onload = function() {
 		exp.push( new Scene( items[i] ) );
 	}
 
-
 }

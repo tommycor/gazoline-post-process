@@ -5,6 +5,7 @@ module.exports =  class Video {
 		this.render 	= this.render.bind( this );
 		this.onResize 	= this.onResize.bind ( this );
 
+		this.url = url;
 		this.createVideo();
 
 		this.sprite = new PIXI.Sprite( PIXI.Texture.fromCanvas( this.videoImage ) );
@@ -19,7 +20,7 @@ module.exports =  class Video {
 
 	createVideo() {
 		this.video = document.createElement( 'video' );
-		this.video.src = config.video.url;
+		this.video.src = this.url;
 		this.video.load();
 		this.video.play();
 

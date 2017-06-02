@@ -3,44 +3,40 @@ import Vector2 from './Vector2';
 import Vector3 from './Vector3';
 import Vector4 from './Vector4';
 
-module.exports = {	
-	canvas: {
-		element : document.getElementById('container'),
-		color : 0x000000
-	},
+module.exports = class Config{
+	constructor( element ) {
+		this.canvas = {
+			element: element,
+			color: 0x000000
+		};
 
-	axisHelper: false,
-	
-	lights: {
-		ambient: {
-			color : 0xffffff
-		} 
-	},
+		this.scale = !this.tester('data-scale', this.canvas.element) ? 1.5 : this.tester('data-scale', this.canvas.element);
 
-	scale: 1.5,
+		this.greyscale = false;
 
-	greyscale: true,
+		this.useVideo = true;
 
-	useVideo: true,
+		this.textureURL = './assets/medias/test_2.jpg';
 
-	textureURL: './assets/medias/test_2.jpg',
+		this.maxInteractions = 250;
 
-	maxInteractions: 250,
+		this.text = 'Potatoe Banana!';
 
-	text: 'I am banana',
+		this.video = {
+			url: './assets/medias/test_video.mp4',
+			useVideo: true
+		};
+	}
 
-	video: {
-		url: './assets/medias/test_video.mp4',
-	},
+	tester(name, element) {
+		let value = element.getAttribute( name );
 
-	fit: 'height',
-
-	plane: {
-		width: 100,
-		height: 50,
-		segments: 2
-	},
-
-	minPonderation: .5
+		if( value == void 0 || value == '' ) {
+			return false;
+		}
+		else {
+			return value;
+		}
+	}
 }
 

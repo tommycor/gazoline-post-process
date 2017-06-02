@@ -2,7 +2,7 @@ import Vector2 		from '../utils/Vector2';
 import Vector3 		from '../utils/Vector3';
 import Vector4 		from '../utils/Vector4';
 
-import config 		from '../utils/config';
+import Config 		from '../utils/config';
 import mapper 		from '../utils/mapper';
 import serializer 	from '../utils/serializer';
 
@@ -13,7 +13,7 @@ import Text 		from './Text';
 
 module.exports = class Scene{
 
-	constructor() {
+	constructor( el ) {
 		this.render  	= this.render.bind(this);
 		this.onResize	= this.onResize.bind(this);
 		this.onMove		= this.onMove.bind(this);
@@ -21,14 +21,15 @@ module.exports = class Scene{
 		this.onMouseDown= this.onMouseDown.bind(this);
 		this.onMouseUp	= this.onMouseUp.bind(this);
 
+		this.config = new Config( el );
 		this.interactionsPos 	= new Array();
 		this.interactionsTime 	= new Array();
 		this.interactionsIndex 	= 0;
-		this.container 			= config.canvas.element;
-		this.width 				= this.container.offsetWidth / config.scale;
-		this.height 			= this.container.offsetHeight / config.scale;
+		this.container 			= this.config.canvas.element;
+		this.width 				= this.container.offsetWidth / this.config.scale;
+		this.height 			= this.container.offsetHeight / this.config.scale;
 
-		for( let i = 0 ; i < config.maxInteractions * 3 ; i++ ) {
+		for( let i = 0 ; i < this.config.maxInteractions * 3 ; i++ ) {
 			this.interactionsPos[i]  = new Vector3( 0, 0, 0 );
 			this.interactionsTime[i] = 100;
 		}
@@ -37,7 +38,7 @@ module.exports = class Scene{
 		this.group = new PIXI.Container();
 
 
-		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + config.maxInteractions + require('../shaders/water.fragment.glsl');;
+		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + this.config.maxInteractions + require('../shaders/water.fragment.glsl');;
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uNoiseInfluence:	{ type: "f", 	value: .0 },
@@ -50,16 +51,16 @@ module.exports = class Scene{
 		this.filter = new PIXI.Filter( null, this.fragmentShader, this.gazolineUniforms);
 		this.group.filters = [ this.filter ];
 
-		this.sprite = PIXI.Sprite.fromImage( config.textureURL );
+		this.sprite = PIXI.Sprite.fromImage( this.config.textureURL );
 		this.sprite.texture.baseTexture.on('loaded', this.onResize);
 		this.group.addChild( this.sprite );
 
-		if( config.useVideo ) {
-			this.spriteVideo = new Video();
+		if( this.config.useVideo ) {
+			this.spriteVideo = new Video( this.config.video.url );
 			this.group.addChild( this.spriteVideo.sprite );
 		}
 
-		if( config.text != void 0 && config.text != '' ) {
+		if( this.config.text != void 0 && this.config.text != '' ) {
 			this.spriteText = new Text();
 			this.group.addChild( this.spriteText.text );
 		}
@@ -94,16 +95,16 @@ module.exports = class Scene{
 	}
 
 	onResize() {
-		this.width 	= this.container.offsetWidth / config.scale;
-		this.height = this.container.offsetHeight / config.scale;
+		this.width 	= this.container.offsetWidth / this.config.scale;
+		this.height = this.container.offsetHeight / this.config.scale;
 
 		this.app.renderer.resize( this.width, this.height );
 
-		this.app.view.style.transform = 'scale(' + config.scale + ')';
+		this.app.view.style.transform = 'scale(' + this.config.scale + ')';
 		this.app.view.style.transformOrigin = '0 0';
 
 		let imageRatio = this.sprite.width / this.sprite.height;
-		let containerRatio = this.width / config.scale / this.height;
+		let containerRatio = this.width / this.config.scale / this.height;
 
 		if(containerRatio > imageRatio) {
 		    this.sprite.height = this.sprite.height / (this.sprite.width / this.width);
@@ -117,11 +118,11 @@ module.exports = class Scene{
 		    this.sprite.position.x = (this.width - this.sprite.width) / 2;
 		}
 
-		if( config.useVideo ) {
+		if( this.config.useVideo ) {
 			this.spriteVideo.onResize( this.width, this.height );
 		}
 
-		if( config.text != void 0 && config.text != '' ) {
+		if( this.config.text != void 0 && this.config.text != '' ) {
 			this.spriteText.onResize( this.width, this.height );
 		}
 	}
@@ -130,7 +131,7 @@ module.exports = class Scene{
 		let position = event.data.global;
 		position.y = this.sprite.height - position.y;
 
-		if( this.interactionsIndex > config.maxInteractions ) {
+		if( this.interactionsIndex > this.config.maxInteractions ) {
 			this.removeItem(0);
 		}
 
@@ -139,8 +140,8 @@ module.exports = class Scene{
 				let delta = new Vector2( position.x, position.y ).distanceTo( new Vector2( this.interactionsPos[ this.interactionsIndex - 1 ].x, this.interactionsPos[ this.interactionsIndex - 1 ].y ) );
 				ponderation = 1 - delta *.5;
 				
-				if( ponderation < config.minPonderation ) {
-					ponderation = config.minPonderation;
+				if( ponderation < this.config.minPonderation ) {
+					ponderation = this.config.minPonderation;
 				}
 			}
 			else {
@@ -182,7 +183,7 @@ module.exports = class Scene{
 
 		this.filter.uniforms.uInteractionsTime = this.interactionsTime;
 
-		if( config.useVideo ) {
+		if( this.config.useVideo ) {
 			this.spriteVideo.render();
 		}
 	}
