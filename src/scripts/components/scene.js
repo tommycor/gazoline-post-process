@@ -18,10 +18,8 @@ module.exports = class Scene{
 		this.onResize	= this.onResize.bind(this);
 		this.onMove		= this.onMove.bind(this);
 		this.onClick	= this.onClick.bind(this);
-		this.onMouseDown= this.onMouseDown.bind(this);
-		this.onMouseUp	= this.onMouseUp.bind(this);
 
-		this.config = new Config( el );
+		this.config 			= new Config( el );
 		this.interactionsPos 	= new Array();
 		this.interactionsTime 	= new Array();
 		this.interactionsIndex 	= 0;
@@ -42,7 +40,7 @@ module.exports = class Scene{
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
 			uNoiseInfluence:	{ type: "f", 	value: .0 },
-			uResolution: 		{ type: "v2", 	value: new Vector2( this.width, this.height ) },
+			uResolution: 		{ type: "v2", 	value: new Array( this.width, this.height ) },
 			uInteractionsPos: 	{ type: 'v3v', 	value: serializer( this.interactionsPos, 3) },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
 			uInteractionsIndex: { type: 'i', 	value: this.interactionsIndex },
@@ -88,12 +86,6 @@ module.exports = class Scene{
 		this.addInteractionFromEvent( event, this.isCapting ? 100 : 1 );
 	}
 
-	onMouseDown( event ) {
-	}
-
-	onMouseUp( event ) {
-	}
-
 	onResize() {
 		this.width 	= this.container.offsetWidth / this.config.scale;
 		this.height = this.container.offsetHeight / this.config.scale;
@@ -125,6 +117,8 @@ module.exports = class Scene{
 		if( this.config.text != void 0 && this.config.text != '' ) {
 			this.spriteText.onResize( this.width, this.height );
 		}
+
+		this.filter.uniforms.uResolution = [ this.width, this.height ];
 	}
 
 	addInteractionFromEvent( event, ponderation ) {

@@ -14,7 +14,7 @@ module.exports = class Config{
 
 		this.greyscale = !this.tester('data-greyscale', this.canvas.element) ? false : this.tester('data-greyscale', this.canvas.element);
 
-		this.useVideo = true;
+		this.useVideo = false;
 
 		this.textureURL = !this.tester('data-image-url', this.canvas.element) ? './assets/medias/test_2.jpg' : this.tester('data-image-url', this.canvas.element);
 
