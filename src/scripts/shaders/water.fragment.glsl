@@ -1,14 +1,14 @@
 
-#define MAX_DIST_1 .1
+#define MAX_DIST_1 .5
 #define MAX_DIST_2 10.
 #define MAX_Time 10.
 #define PI 3.1415926535
 #define PI_2 6.2831853071
 
-#define s_influenceSlope -.1
-#define s_frequency 2.5
-#define s_amplitude .2
-#define s_waveLength .5
+#define s_influenceSlope -15.
+#define s_frequency 5.
+#define s_amplitude .3
+#define s_waveLength 50.
 #define s_shift .08
 
 #define b_influenceSlope -.15
@@ -57,7 +57,7 @@ void main( void ) {
 	float influence = .0;
 	float influenceTime = .0;
 	float vitesse = .0;
-	vec3 color = vec3(0);
+	vec3 color = vec3(0.);
 
 	for( int i = 0 ; i < MAX_INT ; i++ ) {
 		if( i >= uInteractionsIndex ) {
@@ -76,7 +76,7 @@ void main( void ) {
 			dist = distance( explosionUV, uv );
 
 			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
-				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * .7 + .2;
+				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * 1.1 + .5;
 
 				// FADE OUT
 				influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
@@ -130,14 +130,15 @@ void main( void ) {
 
 		globalSinVal = globalSinVal + globalSinVal * sinVal;
 
-		explosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );
+		// explosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );
+		explosions = explosions + ( vec2( explosionUV - uv ) ) / dist * sin( sinVal.g * PI + PI );
 	}
 
-	// rgb = texture2D(uSampler, gl_FragCoord.xy + explosions * .0004 ).rgb * noise;
-	rgb = texture2D(uSampler, vTextureCoord.xy + explosions * 0.0004 ).rgb * noise;
+	// rgb = texture2D(uSampler, vFilterCoord.xy + explosions * .004 ).rgb * noise;
+	rgb = texture2D(uSampler, vTextureCoord + explosions * .003 ).rgb * noise;
 
-	// rgb = rgb * globalSinVal;
-	// rgb = color;
+	rgb = rgb * globalSinVal;
+	// rgb = texture2D(uSampler, vTextureCoord.xy ).rgb;
 
 	gl_FragColor = vec4( rgb, 1. );
 }

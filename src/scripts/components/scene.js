@@ -153,7 +153,7 @@ module.exports = class Scene{
 	}
 
 	render( delta ) {
-		delta *= .01;
+		delta *= .016;
 
 		this.filter.uniforms.uTime += delta;
 
