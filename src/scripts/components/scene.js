@@ -18,6 +18,8 @@ module.exports = class Scene{
 		this.onResize	= this.onResize.bind(this);
 		this.onMove		= this.onMove.bind(this);
 		this.onClick	= this.onClick.bind(this);
+		this.onOver		= this.onOver.bind(this);
+		this.onOut		= this.onOut.bind(this);
 
 		this.config 			= new Config( el );
 		this.interactionsPos 	= new Array();
@@ -26,6 +28,8 @@ module.exports = class Scene{
 		this.container 			= this.config.canvas.element;
 		this.width 				= this.container.offsetWidth / this.config.scale;
 		this.height 			= this.container.offsetHeight / this.config.scale;
+		this.noiseInfluence 	= 0;
+		this.isClean		 	= true;
 
 		for( let i = 0 ; i < this.config.maxInteractions * 3 ; i++ ) {
 			this.interactionsPos[i]  = new Vector3( 0, 0, 0 );
@@ -39,7 +43,7 @@ module.exports = class Scene{
 		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + this.config.maxInteractions + require('../shaders/water.fragment.glsl');;
 		this.gazolineUniforms = {
 			uTime: 				{ type: "f", 	value: .0 },
-			uNoiseInfluence:	{ type: "f", 	value: .0 },
+			uNoiseInfluence:	{ type: "f", 	value: 10. },
 			uResolution: 		{ type: "v2", 	value: new Array( this.width, this.height ) },
 			uInteractionsPos: 	{ type: 'v3v', 	value: serializer( this.interactionsPos, 3) },
 			uInteractionsTime: 	{ type: 'fv1', 	value: this.interactionsTime },
@@ -53,19 +57,22 @@ module.exports = class Scene{
 		this.sprite.texture.baseTexture.on('loaded', this.onResize);
 		this.group.addChild( this.sprite );
 
-		if( this.config.useVideo ) {
+		if( this.config.video.useVideo ) {
 			this.spriteVideo = new Video( this.config.video.url );
 			this.group.addChild( this.spriteVideo.sprite );
 		}
 
+
 		if( this.config.text != void 0 && this.config.text != '' ) {
-			this.spriteText = new Text();
+			this.spriteText = new Text( this.config.text );
 			this.group.addChild( this.spriteText.text );
 		}
 
 		this.group.interactive = true;
 		this.group.on('pointermove', this.onMove);
 		this.group.on('pointerdown', this.onClick);
+		this.group.on('pointerover', this.onOver);
+		this.group.on('pointerout',  this.onOut);
 
 		this.app.stage.addChild( this.group );
 		this.container.appendChild( this.app.view );
@@ -84,6 +91,15 @@ module.exports = class Scene{
 
 	onMove( event ) {
 		this.addInteractionFromEvent( event, this.isCapting ? 100 : 1 );
+	}
+
+	onOver( event ) {
+		this.isClean = false;
+		this.noiseInfluence = 1;
+	}
+
+	onOut( event ) {
+		this.noiseInfluence = 0;
 	}
 
 	onResize() {
@@ -173,12 +189,15 @@ module.exports = class Scene{
 			}
 		}
 
-		this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
-
-		this.filter.uniforms.uInteractionsTime = this.interactionsTime;
-
-		if( this.config.useVideo ) {
+		if( this.config.video.useVideo ) {
 			this.spriteVideo.render();
+		}
+
+		if( this.isClean ) {
+			this.filter.uniforms.uNoiseInfluence += ( this.noiseInfluence - this.filter.uniforms.uNoiseInfluence ) * 0.02;
+		}
+		else {
+			this.filter.uniforms.uNoiseInfluence += ( this.noiseInfluence - this.filter.uniforms.uNoiseInfluence ) * 0.02;
 		}
 	}
 

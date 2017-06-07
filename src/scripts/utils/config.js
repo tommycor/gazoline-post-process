@@ -14,8 +14,6 @@ module.exports = class Config{
 
 		this.greyscale = !this.tester('data-greyscale', this.canvas.element) ? false : this.tester('data-greyscale', this.canvas.element);
 
-		this.useVideo = false;
-
 		this.textureURL = !this.tester('data-image-url', this.canvas.element) ? './assets/medias/test_2.jpg' : this.tester('data-image-url', this.canvas.element);
 
 		this.maxInteractions = !this.tester('data-max-interaction', this.canvas.element) ? 250 : this.tester('data-max-interaction', this.canvas.element);
@@ -31,8 +29,11 @@ module.exports = class Config{
 	tester(name, element) {
 		let value = element.getAttribute( name );
 
-		if( value == void 0 || value == '' ) {
+		if( value == void 0 || value == '' || value == 'false' ) {
 			return false;
+		}
+		else if ( value == 'true' ) {
+			return true;
 		}
 		else {
 			return value;

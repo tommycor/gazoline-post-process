@@ -51,6 +51,8 @@ module.exports = (function () {
 		this.onResize = this.onResize.bind(this);
 		this.onMove = this.onMove.bind(this);
 		this.onClick = this.onClick.bind(this);
+		this.onOver = this.onOver.bind(this);
+		this.onOut = this.onOut.bind(this);
 
 		this.config = new _utilsConfig2['default'](el);
 		this.interactionsPos = new Array();
@@ -59,6 +61,8 @@ module.exports = (function () {
 		this.container = this.config.canvas.element;
 		this.width = this.container.offsetWidth / this.config.scale;
 		this.height = this.container.offsetHeight / this.config.scale;
+		this.noiseInfluence = 0;
+		this.isClean = true;
 
 		for (var i = 0; i < this.config.maxInteractions * 3; i++) {
 			this.interactionsPos[i] = new _utilsVector32['default'](0, 0, 0);
@@ -71,7 +75,7 @@ module.exports = (function () {
 		this.fragmentShader = require('../shaders/noises/noise3D.glsl') + '#define MAX_INT ' + this.config.maxInteractions + require('../shaders/water.fragment.glsl');;
 		this.gazolineUniforms = {
 			uTime: { type: "f", value: .0 },
-			uNoiseInfluence: { type: "f", value: .0 },
+			uNoiseInfluence: { type: "f", value: 10. },
 			uResolution: { type: "v2", value: new Array(this.width, this.height) },
 			uInteractionsPos: { type: 'v3v', value: (0, _utilsSerializer2['default'])(this.interactionsPos, 3) },
 			uInteractionsTime: { type: 'fv1', value: this.interactionsTime },
@@ -85,19 +89,21 @@ module.exports = (function () {
 		this.sprite.texture.baseTexture.on('loaded', this.onResize);
 		this.group.addChild(this.sprite);
 
-		if (this.config.useVideo) {
+		if (this.config.video.useVideo) {
 			this.spriteVideo = new _Video2['default'](this.config.video.url);
 			this.group.addChild(this.spriteVideo.sprite);
 		}
 
 		if (this.config.text != void 0 && this.config.text != '') {
-			this.spriteText = new _Text2['default']();
+			this.spriteText = new _Text2['default'](this.config.text);
 			this.group.addChild(this.spriteText.text);
 		}
 
 		this.group.interactive = true;
 		this.group.on('pointermove', this.onMove);
 		this.group.on('pointerdown', this.onClick);
+		this.group.on('pointerover', this.onOver);
+		this.group.on('pointerout', this.onOut);
 
 		this.app.stage.addChild(this.group);
 		this.container.appendChild(this.app.view);
@@ -119,6 +125,17 @@ module.exports = (function () {
 		key: 'onMove',
 		value: function onMove(event) {
 			this.addInteractionFromEvent(event, this.isCapting ? 100 : 1);
+		}
+	}, {
+		key: 'onOver',
+		value: function onOver(event) {
+			this.isClean = false;
+			this.noiseInfluence = 1;
+		}
+	}, {
+		key: 'onOut',
+		value: function onOut(event) {
+			this.noiseInfluence = 0;
 		}
 	}, {
 		key: 'onResize',
@@ -209,12 +226,14 @@ module.exports = (function () {
 				}
 			}
 
-			this.filter.uniforms.uNoiseInfluence = this.interactionsIndex / 250;
-
-			this.filter.uniforms.uInteractionsTime = this.interactionsTime;
-
-			if (this.config.useVideo) {
+			if (this.config.video.useVideo) {
 				this.spriteVideo.render();
+			}
+
+			if (this.isClean) {
+				this.filter.uniforms.uNoiseInfluence += (this.noiseInfluence - this.filter.uniforms.uNoiseInfluence) * 0.02;
+			} else {
+				this.filter.uniforms.uNoiseInfluence += (this.noiseInfluence - this.filter.uniforms.uNoiseInfluence) * 0.02;
 			}
 		}
 	}, {
@@ -240,16 +259,10 @@ module.exports = (function () {
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-var _utilsConfig = require('../utils/config');
-
-var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
-
 module.exports = (function () {
-	function Text() {
+	function Text(text) {
 		_classCallCheck(this, Text);
 
 		this.onResize = this.onResize.bind(this);
@@ -263,7 +276,7 @@ module.exports = (function () {
 			wordWrapWidth: 440
 		});
 
-		this.text = new PIXI.Text(_utilsConfig2['default'].text, this.textStyle);
+		this.text = new PIXI.Text(text, this.textStyle);
 		this.text.anchor.set(0.5, 0.5);
 	}
 
@@ -283,18 +296,12 @@ module.exports = (function () {
 	return Text;
 })();
 
-},{"../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js":[function(require,module,exports){
+},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\components\\Video.js":[function(require,module,exports){
 'use strict';
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-var _utilsConfig = require('../utils/config');
-
-var _utilsConfig2 = _interopRequireDefault(_utilsConfig);
 
 module.exports = (function () {
 	function Video(url) {
@@ -307,6 +314,8 @@ module.exports = (function () {
 		this.createVideo();
 
 		this.sprite = new PIXI.Sprite(PIXI.Texture.fromCanvas(this.videoImage));
+		this.sprite.width = 1280;
+		this.sprite.height = 720;
 	}
 
 	_createClass(Video, [{
@@ -368,7 +377,7 @@ module.exports = (function () {
 	return Video;
 })();
 
-},{"../utils/config":"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\config.js"}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
+},{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\initialize.js":[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -395,7 +404,7 @@ window.onload = function () {
 module.exports = "//\r\n// Description : Array and textureless GLSL 2D/3D/4D simplex \r\n//               noise functions.\r\n//      Author : Ian McEwan, Ashima Arts.\r\n//  Maintainer : stegu\r\n//     Lastmod : 20110822 (ijm)\r\n//     License : Copyright (C) 2011 Ashima Arts. All rights reserved.\r\n//               Distributed under the MIT License. See LICENSE file.\r\n//               https://github.com/ashima/webgl-noise\r\n//               https://github.com/stegu/webgl-noise\r\n// \r\n\r\nvec3 mod289(vec3 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 mod289(vec4 x) {\r\n  return x - floor(x * (1.0 / 289.0)) * 289.0;\r\n}\r\n\r\nvec4 permute(vec4 x) {\r\n     return mod289(((x*34.0)+1.0)*x);\r\n}\r\n\r\nvec4 taylorInvSqrt(vec4 r)\r\n{\r\n  return 1.79284291400159 - 0.85373472095314 * r;\r\n}\r\n\r\nfloat snoise(vec3 v)\r\n  { \r\n  const vec2  C = vec2(1.0/6.0, 1.0/3.0) ;\r\n  const vec4  D = vec4(0.0, 0.5, 1.0, 2.0);\r\n\r\n// First corner\r\n  vec3 i  = floor(v + dot(v, C.yyy) );\r\n  vec3 x0 =   v - i + dot(i, C.xxx) ;\r\n\r\n// Other corners\r\n  vec3 g = step(x0.yzx, x0.xyz);\r\n  vec3 l = 1.0 - g;\r\n  vec3 i1 = min( g.xyz, l.zxy );\r\n  vec3 i2 = max( g.xyz, l.zxy );\r\n\r\n  //   x0 = x0 - 0.0 + 0.0 * C.xxx;\r\n  //   x1 = x0 - i1  + 1.0 * C.xxx;\r\n  //   x2 = x0 - i2  + 2.0 * C.xxx;\r\n  //   x3 = x0 - 1.0 + 3.0 * C.xxx;\r\n  vec3 x1 = x0 - i1 + C.xxx;\r\n  vec3 x2 = x0 - i2 + C.yyy; // 2.0*C.x = 1/3 = C.y\r\n  vec3 x3 = x0 - D.yyy;      // -1.0+3.0*C.x = -0.5 = -D.y\r\n\r\n// Permutations\r\n  i = mod289(i); \r\n  vec4 p = permute( permute( permute( \r\n             i.z + vec4(0.0, i1.z, i2.z, 1.0 ))\r\n           + i.y + vec4(0.0, i1.y, i2.y, 1.0 )) \r\n           + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));\r\n\r\n// Gradients: 7x7 points over a square, mapped onto an octahedron.\r\n// The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)\r\n  float n_ = 0.142857142857; // 1.0/7.0\r\n  vec3  ns = n_ * D.wyz - D.xzx;\r\n\r\n  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);  //  mod(p,7*7)\r\n\r\n  vec4 x_ = floor(j * ns.z);\r\n  vec4 y_ = floor(j - 7.0 * x_ );    // mod(j,N)\r\n\r\n  vec4 x = x_ *ns.x + ns.yyyy;\r\n  vec4 y = y_ *ns.x + ns.yyyy;\r\n  vec4 h = 1.0 - abs(x) - abs(y);\r\n\r\n  vec4 b0 = vec4( x.xy, y.xy );\r\n  vec4 b1 = vec4( x.zw, y.zw );\r\n\r\n  //vec4 s0 = vec4(lessThan(b0,0.0))*2.0 - 1.0;\r\n  //vec4 s1 = vec4(lessThan(b1,0.0))*2.0 - 1.0;\r\n  vec4 s0 = floor(b0)*2.0 + 1.0;\r\n  vec4 s1 = floor(b1)*2.0 + 1.0;\r\n  vec4 sh = -step(h, vec4(0.0));\r\n\r\n  vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;\r\n  vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;\r\n\r\n  vec3 p0 = vec3(a0.xy,h.x);\r\n  vec3 p1 = vec3(a0.zw,h.y);\r\n  vec3 p2 = vec3(a1.xy,h.z);\r\n  vec3 p3 = vec3(a1.zw,h.w);\r\n\r\n//Normalise gradients\r\n  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));\r\n  p0 *= norm.x;\r\n  p1 *= norm.y;\r\n  p2 *= norm.z;\r\n  p3 *= norm.w;\r\n\r\n// Mix final noise value\r\n  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);\r\n  m = m * m;\r\n  return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), \r\n                                dot(p2,x2), dot(p3,x3) ) );\r\n  }\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\shaders\\water.fragment.glsl":[function(require,module,exports){
-module.exports = "\r\n#define MAX_DIST_1 .5\r\n#define MAX_DIST_2 10.\r\n#define MAX_Time 10.\r\n#define PI 3.1415926535\r\n#define PI_2 6.2831853071\r\n\r\n#define s_influenceSlope -15.\r\n#define s_frequency 5.\r\n#define s_amplitude .3\r\n#define s_waveLength 50.\r\n#define s_shift .08\r\n\r\n#define b_influenceSlope -.15\r\n#define b_frequency 4.\r\n#define b_amplitude 4.\r\n#define b_waveLength .2\r\n#define b_shift 1.\r\n\r\n\r\n\r\nuniform float uTime;\r\nuniform sampler2D uSampler;\r\nuniform vec2 uResolution;\r\nuniform sampler2D uTex;\r\n\r\nvarying vec2 vFilterCoord;\r\nvarying vec2 vTextureCoord;\r\nvarying vec4 vColor;\r\n\r\nuniform float uInteractionsTime[ MAX_INT ];\r\nuniform vec3 uInteractionsPos[ MAX_INT ];\r\nuniform float uInteractionsPonderation[ MAX_INT ];\r\nuniform int uInteractionsIndex;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 offsetWave = vec3( .4, .2, .0);\r\nvec3 noise \t= vec3(.0, .0, .0);\r\nvec3 rgb \t= vec3(.0, .0, .0);\r\nvec2 diff \t= vec2(.0, .0);\r\n\r\nvoid main( void ) {\r\n\r\n\tvec2 uv = gl_FragCoord.xy/uResolution;\r\n\r\n\tnoise = vec3(\r\n\t\tsnoise( vec3( uv * 2. + offset.r, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uv * 2. + offset.g, uTime * .5 ) ) * .5 + 1.,\r\n\t\tsnoise( vec3( uv * 2. + offset.b, uTime * .5 ) ) * .5 + 1.\r\n\t);\r\n\r\n\tvec3 globalSinVal = vec3( 1. );\r\n\tvec2 explosions = vec2( 0. );\r\n\r\n\tvec3 sinVal = vec3( .0 );\r\n\tfloat dist  = .0;\r\n\tfloat influence = .0;\r\n\tfloat influenceTime = .0;\r\n\tfloat vitesse = .0;\r\n\tvec3 color = vec3(0.);\r\n\r\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t\tif( i >= uInteractionsIndex ) {\r\n\t\t\tbreak;\r\n\t\t}\r\n\r\n\t\tsinVal = vec3( .0 );\r\n\t\tdist = .0;\r\n\t\tinfluence = .0;\r\n\t\tinfluenceTime = .0;\r\n\t\tvitesse = 1.;\r\n\r\n\t\tvec2 explosionUV = uInteractionsPos[i].xy / uResolution;\r\n\r\n\t\tif( uInteractionsPos[i].z != 100. ) {\r\n\t\t\tdist = distance( explosionUV, uv );\r\n\r\n\t\t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {\r\n\t\t\t\tinfluence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * 1.1 + .5;\r\n\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\tif( influence > .0 ) {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\t\t// else if( uInteractionsPos[i].z == 100. ) {\r\n\t\t// \tdist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.04;\r\n\r\n\t\t// \t// INFLUENCE FROM DIST + SPAWNING \r\n\t\t// \tif( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {\r\n\t\t// \t\tinfluence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;\r\n\r\n\t\t// \t\tif( influence > 1. ) { \r\n\t\t// \t\t\tinfluence = 1.;\r\n\t\t// \t\t}\r\n\r\n\t\t// \t\t// FADE OUT\r\n\t\t// \t\tinfluenceTime = ( uInteractionsTime[i] * -.3 + 1. );\r\n\t\t// \t\t// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );\r\n\t\t\t\t\r\n\t\t// \t\tif( influenceTime > .0 ) {\r\n\r\n\t\t// \t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t// \t\t\t// influence is gonna act on simili sombrero function\r\n\t\t// \t\t\tif( influence > .0 ) {\r\n\r\n\t\t// \t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t// \t\t\t\tsinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;\r\n\r\n\t\t// \t\t\t\tsinVal = sinVal * influence;\r\n\t\t// \t\t\t}\r\n\t\t// \t\t}\r\n\t\t// \t}\r\n\t\t// }\r\n\r\n\t\tif( sinVal == vec3( .0 ) ) { continue; }\r\n\r\n\t\tglobalSinVal = globalSinVal + globalSinVal * sinVal;\r\n\r\n\t\t// explosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t\texplosions = explosions + ( vec2( explosionUV - uv ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t}\r\n\r\n\t// rgb = texture2D(uSampler, vFilterCoord.xy + explosions * .004 ).rgb * noise;\r\n\trgb = texture2D(uSampler, vTextureCoord + explosions * .003 ).rgb * noise;\r\n\r\n\trgb = rgb * globalSinVal;\r\n\t// rgb = texture2D(uSampler, vTextureCoord.xy ).rgb;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
+module.exports = "\r\n#define MAX_DIST_1 .5\r\n#define MAX_DIST_2 1.\r\n#define MAX_Time 10.\r\n#define PI 3.1415926535\r\n#define PI_2 6.2831853071\r\n\r\n#define s_influenceSlope -15.\r\n#define s_frequency 5.\r\n#define s_amplitude .2\r\n#define s_waveLength 50.\r\n#define s_shift .1\r\n\r\n#define b_influenceSlope -10.\r\n#define b_frequency 4.\r\n#define b_amplitude 1.5\r\n#define b_waveLength 10.\r\n#define b_shift .03\r\n\r\n\r\n\r\nuniform float uTime;\r\nuniform sampler2D uSampler;\r\nuniform vec2 uResolution;\r\nuniform sampler2D uTex;\r\nuniform float uNoiseInfluence;\r\n\r\nvarying vec2 vFilterCoord;\r\nvarying vec2 vTextureCoord;\r\nvarying vec4 vColor;\r\n\r\nuniform float uInteractionsTime[ MAX_INT ];\r\nuniform vec3 uInteractionsPos[ MAX_INT ];\r\nuniform float uInteractionsPonderation[ MAX_INT ];\r\nuniform int uInteractionsIndex;\r\n\r\nvec3 offset = vec3( 0., .1, .2);\r\nvec3 offsetWave = vec3( .4, .2, .0);\r\nvec3 noise \t= vec3(.0, .0, .0);\r\nvec3 rgb \t= vec3(.0, .0, .0);\r\nvec2 diff \t= vec2(.0, .0);\r\n\r\nvoid main( void ) {\r\n\r\n\tvec2 uv = gl_FragCoord.xy/uResolution;\r\n\r\n\tnoise = vec3(\r\n\t\tsnoise( vec3( uv * 2. + offset.r, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,\r\n\t\tsnoise( vec3( uv * 2. + offset.g, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,\r\n\t\tsnoise( vec3( uv * 2. + offset.b, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.\r\n\t);\r\n\r\n\tvec3 globalSinVal = vec3( 1. );\r\n\tvec2 explosions = vec2( 0. );\r\n\r\n\tvec3 sinVal = vec3( .0 );\r\n\tfloat dist  = .0;\r\n\tfloat influence = .0;\r\n\tfloat influenceTime = .0;\r\n\tfloat vitesse = .0;\r\n\tvec3 color = vec3(0.);\r\n\r\n\tfor( int i = 0 ; i < MAX_INT ; i++ ) {\r\n\t\tif( i >= uInteractionsIndex ) {\r\n\t\t\tbreak;\r\n\t\t}\r\n\r\n\t\tsinVal = vec3( .0 );\r\n\t\tdist = .0;\r\n\t\tinfluence = .0;\r\n\t\tinfluenceTime = .0;\r\n\t\tvitesse = 1.;\r\n\r\n\t\tvec2 explosionUV = uInteractionsPos[i].xy / uResolution;\r\n\r\n\t\tif( uInteractionsPos[i].z != 100. ) {\r\n\t\t\tdist = distance( explosionUV, uv );\r\n\r\n\t\t\tif( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {\r\n\t\t\t\tinfluence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * 1.1 + .5;\r\n\r\n\t\t\t\tif( influence > 1. ) { \r\n\t\t\t\t\tinfluence = 1.;\r\n\t\t\t\t}\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.5 + 1. );\r\n\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\tif( influence > .0 ) {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * s_waveLength - uInteractionsTime[i] * s_frequency ) + offsetWave ) * s_amplitude + s_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\t\telse if( uInteractionsPos[i].z == 100. ) {\r\n\t\t\tdist = distance( explosionUV, uv );\r\n\r\n\t\t\t// INFLUENCE FROM DIST + SPAWNING \r\n\t\t\tif( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {\r\n\t\t\t\tinfluence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * 1.0 + .3;\r\n\r\n\t\t\t\tif( influence > 1. ) { \r\n\t\t\t\t\tinfluence = 1.;\r\n\t\t\t\t}\r\n\r\n\t\t\t\t// FADE OUT\r\n\t\t\t\tinfluenceTime = ( uInteractionsTime[i] * -.3 + 1. );\r\n\t\t\t\t// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );\r\n\t\t\t\t\r\n\t\t\t\tif( influenceTime > .0 ) {\r\n\r\n\t\t\t\t\tinfluence = influence * influenceTime ;\r\n\r\n\t\t\t\t\t// influence is gonna act on simili sombrero function\r\n\t\t\t\t\tif( influence > .0 ) {\r\n\r\n\t\t\t\t\t\t// HERE WE ONLY CALCULATE REAL WAVE\r\n\t\t\t\t\t\tsinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;\r\n\r\n\t\t\t\t\t\tsinVal = sinVal * influence;\r\n\t\t\t\t\t}\r\n\t\t\t\t}\r\n\t\t\t}\r\n\t\t}\r\n\r\n\t\tif( sinVal == vec3( .0 ) ) { continue; }\r\n\r\n\t\tglobalSinVal = globalSinVal + globalSinVal * sinVal;\r\n\r\n\t\t// explosions = explosions + ( vec2( uInteractionsPos[i].xy - gl_FragCoord.xy ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t\texplosions = explosions + ( vec2( explosionUV - uv ) ) / dist * sin( sinVal.g * PI + PI );\r\n\t}\r\n\r\n\t// rgb = texture2D(uSampler, vFilterCoord.xy + explosions * .004 ).rgb * noise;\r\n\trgb = texture2D(uSampler, vTextureCoord + explosions * .003 ).rgb * noise;\r\n\r\n\trgb = rgb * globalSinVal;\r\n\t// rgb = texture2D(uSampler, vTextureCoord.xy ).rgb;\r\n\r\n\tgl_FragColor = vec4( rgb, 1. );\r\n}\r\n";
 
 },{}],"D:\\Documents\\git\\gazoline-post-process\\src\\scripts\\utils\\Vector2.js":[function(require,module,exports){
 'use strict';
@@ -2181,8 +2190,6 @@ module.exports = (function () {
 
 		this.greyscale = !this.tester('data-greyscale', this.canvas.element) ? false : this.tester('data-greyscale', this.canvas.element);
 
-		this.useVideo = false;
-
 		this.textureURL = !this.tester('data-image-url', this.canvas.element) ? './assets/medias/test_2.jpg' : this.tester('data-image-url', this.canvas.element);
 
 		this.maxInteractions = !this.tester('data-max-interaction', this.canvas.element) ? 250 : this.tester('data-max-interaction', this.canvas.element);
@@ -2200,8 +2207,10 @@ module.exports = (function () {
 		value: function tester(name, element) {
 			var value = element.getAttribute(name);
 
-			if (value == void 0 || value == '') {
+			if (value == void 0 || value == '' || value == 'false') {
 				return false;
+			} else if (value == 'true') {
+				return true;
 			} else {
 				return value;
 			}

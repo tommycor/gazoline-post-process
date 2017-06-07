@@ -1,5 +1,3 @@
-import config from '../utils/config';
-
 module.exports =  class Video {
 	constructor( url ) {
 		this.render 	= this.render.bind( this );
@@ -9,6 +7,8 @@ module.exports =  class Video {
 		this.createVideo();
 
 		this.sprite = new PIXI.Sprite( PIXI.Texture.fromCanvas( this.videoImage ) );
+		this.sprite.width = 1280;
+		this.sprite.height = 720;
 	}
 
 	render() {
@@ -27,7 +27,7 @@ module.exports =  class Video {
 		this.videoImage = document.createElement( 'canvas' );
 		this.videoImage.width = 1280;
 		this.videoImage.height = 720;
-		
+
 		this.videoImageContext = this.videoImage.getContext( '2d' );
 		this.videoImageContext.fillStyle = '#000000';
 		this.videoImageContext.fillRect( 0, 0, this.videoImage.width, this.videoImage.height );
@@ -45,7 +45,6 @@ module.exports =  class Video {
 	onResize( width, height ) {
 		this.width 	= width;
 		this.height = height;
-
 
 		let imageRatio = this.sprite.width / this.sprite.height;
 		let containerRatio = this.width / this.height;

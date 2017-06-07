@@ -1,7 +1,5 @@
-import config from '../utils/config';
-
 module.exports =  class Text {
-	constructor() {
+	constructor( text ) {
 		this.onResize 	= this.onResize.bind ( this );
 
 		this.textStyle 	= new PIXI.TextStyle({
@@ -13,7 +11,7 @@ module.exports =  class Text {
 			wordWrapWidth: 440
 		});
 
-		this.text = new PIXI.Text(config.text, this.textStyle);
+		this.text = new PIXI.Text(text, this.textStyle);
 		this.text.anchor.set( 0.5, 0.5 );
 	}
 

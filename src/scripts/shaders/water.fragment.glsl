@@ -1,21 +1,21 @@
 
 #define MAX_DIST_1 .5
-#define MAX_DIST_2 10.
+#define MAX_DIST_2 1.
 #define MAX_Time 10.
 #define PI 3.1415926535
 #define PI_2 6.2831853071
 
 #define s_influenceSlope -15.
 #define s_frequency 5.
-#define s_amplitude .3
+#define s_amplitude .2
 #define s_waveLength 50.
-#define s_shift .08
+#define s_shift .1
 
-#define b_influenceSlope -.15
+#define b_influenceSlope -10.
 #define b_frequency 4.
-#define b_amplitude 4.
-#define b_waveLength .2
-#define b_shift 1.
+#define b_amplitude 1.5
+#define b_waveLength 10.
+#define b_shift .03
 
 
 
@@ -23,6 +23,7 @@ uniform float uTime;
 uniform sampler2D uSampler;
 uniform vec2 uResolution;
 uniform sampler2D uTex;
+uniform float uNoiseInfluence;
 
 varying vec2 vFilterCoord;
 varying vec2 vTextureCoord;
@@ -44,9 +45,9 @@ void main( void ) {
 	vec2 uv = gl_FragCoord.xy/uResolution;
 
 	noise = vec3(
-		snoise( vec3( uv * 2. + offset.r, uTime * .5 ) ) * .5 + 1.,
-		snoise( vec3( uv * 2. + offset.g, uTime * .5 ) ) * .5 + 1.,
-		snoise( vec3( uv * 2. + offset.b, uTime * .5 ) ) * .5 + 1.
+		snoise( vec3( uv * 2. + offset.r, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,
+		snoise( vec3( uv * 2. + offset.g, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.,
+		snoise( vec3( uv * 2. + offset.b, uTime * .5 ) ) * .5 * uNoiseInfluence + 1.
 	);
 
 	vec3 globalSinVal = vec3( 1. );
@@ -78,6 +79,9 @@ void main( void ) {
 			if( uInteractionsTime[i] < 2. && dist < MAX_DIST_1 ) {
 				influence = ( dist * s_influenceSlope ) + uInteractionsTime[i] * 1.1 + .5;
 
+				if( influence > 1. ) { 
+					influence = 1.;
+				}
 				// FADE OUT
 				influenceTime = ( uInteractionsTime[i] * -.5 + 1. );
 
@@ -95,36 +99,36 @@ void main( void ) {
 				}
 			}
 		}
-		// else if( uInteractionsPos[i].z == 100. ) {
-		// 	dist = distance( uInteractionsPos[i].xy, gl_FragCoord.xy ) * 0.04;
+		else if( uInteractionsPos[i].z == 100. ) {
+			dist = distance( explosionUV, uv );
 
-		// 	// INFLUENCE FROM DIST + SPAWNING 
-		// 	if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
-		// 		influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * .5 + .0;
+			// INFLUENCE FROM DIST + SPAWNING 
+			if( uInteractionsTime[i] < 4. && dist < MAX_DIST_2 ) {
+				influence = ( dist * b_influenceSlope ) + uInteractionsTime[i] * 1.0 + .3;
 
-		// 		if( influence > 1. ) { 
-		// 			influence = 1.;
-		// 		}
+				if( influence > 1. ) { 
+					influence = 1.;
+				}
 
-		// 		// FADE OUT
-		// 		influenceTime = ( uInteractionsTime[i] * -.3 + 1. );
-		// 		// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );
+				// FADE OUT
+				influenceTime = ( uInteractionsTime[i] * -.3 + 1. );
+				// influenceTime = 1. * exp( -1. * uInteractionsTime[i] );
 				
-		// 		if( influenceTime > .0 ) {
+				if( influenceTime > .0 ) {
 
-		// 			influence = influence * influenceTime ;
+					influence = influence * influenceTime ;
 
-		// 			// influence is gonna act on simili sombrero function
-		// 			if( influence > .0 ) {
+					// influence is gonna act on simili sombrero function
+					if( influence > .0 ) {
 
-		// 				// HERE WE ONLY CALCULATE REAL WAVE
-		// 				sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;
+						// HERE WE ONLY CALCULATE REAL WAVE
+						sinVal = sin( ( dist * b_waveLength - uInteractionsTime[i] * b_frequency ) + offsetWave ) * b_amplitude + b_shift;
 
-		// 				sinVal = sinVal * influence;
-		// 			}
-		// 		}
-		// 	}
-		// }
+						sinVal = sinVal * influence;
+					}
+				}
+			}
+		}
 
 		if( sinVal == vec3( .0 ) ) { continue; }
 
